@@ -1,4 +1,4 @@
-import * as expressLayouts from 'express-ejs-layouts';
+// main.ts
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
@@ -11,10 +11,13 @@ async function bootstrap() {
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('ejs');
 
+  const expressLayouts = require('express-ejs-layouts');
   app.use(expressLayouts);
-  app.set('layout', 'layout');
+  app.setViewEngine('ejs');
+  app.set('layout', './main_layout');
+  app.set('layout extractScripts', true);
+  app.set('layout extractStyles', true);
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
+  await app.listen(3000);
 }
 bootstrap();
