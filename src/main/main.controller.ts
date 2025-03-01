@@ -1,4 +1,3 @@
-// src/main/main.controller.ts
 import { Controller, Get, Render } from '@nestjs/common';
 
 @Controller('main')

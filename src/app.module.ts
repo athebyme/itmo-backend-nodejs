@@ -1,4 +1,3 @@
-// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConstructorModule } from './constructor/constructor.module';
 import { IndexModule } from './index/index.module';

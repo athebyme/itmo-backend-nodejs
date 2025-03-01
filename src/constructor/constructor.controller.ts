@@ -1,4 +1,3 @@
-// src/constructor/constructor.controller.ts
 import { Controller, Get, Render } from '@nestjs/common';
 
 @Controller('constructor')

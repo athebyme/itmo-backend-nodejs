@@ -9,10 +9,10 @@ async function bootstrap() {
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
-  app.setViewEngine('ejs'); // **FIRST: Set View Engine to EJS**
+  app.setViewEngine('ejs');
 
-  app.use(expressLayouts);   // **SECOND: THEN use express-ejs-layouts**
-  app.set('layout', 'layout'); // Set default layout name
+  app.use(expressLayouts);
+  app.set('layout', 'layout');
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
