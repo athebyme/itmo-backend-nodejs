@@ -1,0 +1,29 @@
+<%- layout('layout', { // Указываем, что используем layout.ejs как основной макет
+    title: 'Конструктор таблицы', // Заголовок страницы
+    head_extra: '', // Здесь можно добавить доп. стили для <head>, если нужно, пока пусто
+    body_scripts: '<script defer src="src/js/tableConstructor.js"></script><script defer src="src/js/menuActive.js"></script>', // Доп. скрипты в конец body
+    body: `
+        <section class="section section--form">
+            <h2 class="section__title">Настройка таблицы</h2>
+            <form id="table-form">
+                <h2>Создание заметок</h2>
+
+                <!-- Поле для количества строк -->
+                <label for="rows">Количество строк:</label>
+                <input type="number" id="rows" min="1" value="1" required>
+
+                <!-- Контейнер для динамически создаваемых строк ввода -->
+                <h3>Данные для строк:</h3>
+                <div id="rows-container"></div>
+
+                <!-- Кнопка для добавления строки -->
+                <button type="button" id="add-row">Добавить строку</button>
+
+                <!-- Кнопка для создания таблицы -->
+                <button type="submit">Создать/Обновить таблицу</button>
+            </form>
+            <!-- Контейнер для таблицы -->
+            <div id="table-container"></div>
+        </section>
+    ` // Основной контент страницы (из <main> секции constructor.html)
+}) %>

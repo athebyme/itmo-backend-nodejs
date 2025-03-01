@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конвертер валют - Панель управления продавца</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="src/static/css/style.css">
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Конвертер</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Переключить навигацию">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" id="home-link" href="main.html">Главная</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="stats-link" href="stats.html">Статистика</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="constructor-link" href="constructor.html">Конструктор</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="converter-link" href="./converter.html">Конвертер</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="wildberries-link" href="wildberries.html">Wildberries</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="layout">
+    <main class="main">
+        <section class="section">
+            <h2 class="section__title">Конвертер валют</h2>
+            <p class="section__text">Используйте этот инструмент для проверки стоимости криптовалют в разных валютах.</p>
+
+            <div class="converter-widget mt-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Конвертер криптовалют</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="amountInput" class="form-label">Количество</label>
+                            <input type="number" class="form-control" id="amountInput" value="1" min="0.00000001" step="0.00000001">
+                        </div>
+                        <div class="mb-3">
+                            <label for="cryptoSelect" class="form-label">Выберите криптовалюту</label>
+                            <select class="form-select" id="cryptoSelect">
+                                <option value="BTCUSDT" selected>Bitcoin (BTC)</option>
+                                <option value="ETHUSDT">Ethereum (ETH)</option>
+                                <option value="BNBUSDT">Binance Coin (BNB)</option>
+                                <option value="SOLUSDT">Solana (SOL)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="currencySelect" class="form-label">Выберите валюту конвертации</label>
+                            <select class="form-select" id="currencySelect">
+                                <option value="usd" selected>Доллар США (USD)</option>
+                                <option value="eur">Евро (EUR)</option>
+                                <option value="rub">Российский рубль (RUB)</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary w-100" id="convertBtn">Конвертировать</button>
+
+                        <div class="result-container mt-4 text-center d-none" id="resultContainer">
+                            <h3 class="mb-3">Результат конвертации</h3>
+                            <div class="alert alert-info">
+                                <span id="cryptoAmount" class="fw-bold"></span>
+                                <span id="cryptoSymbol" class="fw-bold"></span> =
+                                <span id="convertedAmount" class="fw-bold"></span>
+                                <span id="currencySymbol" class="fw-bold"></span>
+                            </div>
+                            <p class="small text-muted">Цена обновлена: <span id="updateTime"></span></p>
+                        </div>
+
+                        <div class="alert alert-danger d-none mt-3" id="errorMessage">
+                            Произошла ошибка при получении данных. Пожалуйста, попробуйте позже.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h4>История конвертаций</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped" id="historyTable">
+                        <thead>
+                        <tr>
+                            <th>Дата/Время</th>
+                            <th>Криптовалюта</th>
+                            <th>Количество</th>
+                            <th>Стоимость</th>
+                            <th>Курс</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-secondary" id="clearHistoryBtn">Очистить историю</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- правый блок личный кабинет -->
+    <aside class="aside-wrapper">
+        <aside class="aside">
+            <div class="aside__title">Личный кабинет</div>
+            <div class="aside__text">Добро пожаловать, <span id="usernameDisplay">[Имя пользователя]</span></div>
+            <a id="logoutLink" class="logoutLink">Выйти</a>
+        </aside>
+    </aside>
+</div>
+
+<footer class="footer">
+    <p class="footer__text">Дата + Лого + © 2024</p>
+    <aside class="nav__logo-wrapper">
+        <img src="src/img/logo.png" alt="лого сайта" class="nav__logo">
+    </aside>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2bN2N1KZpAKvbyF9HAdbLk58gP+TfM30tA23KKzW2ZZj53Au+aJ0w1QmOh5" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="src/js/loadTime.js"></script>
+<script src="src/js/menuActive.js"></script>
+<script src="src/js/converter.js"></script>
+</body>
+</html>
