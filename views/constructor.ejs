@@ -1,0 +1,21 @@
+<div class="layout">
+    <main class="main">
+        <section class="section section--form">
+            <h2 class="section__title">Настройка таблицы</h2>
+            <form id="table-form">
+                <h2>Создание заметок</h2>
+
+                <label for="rows">Количество строк:</label>
+                <input type="number" id="rows" min="1" value="1" required>
+
+                <h3>Данные для строк:</h3>
+                <div id="rows-container"></div>
+
+                <button type="button" id="add-row">Добавить строку</button>
+
+                <button type="submit">Создать/Обновить таблицу</button>
+            </form>
+            <div id="table-container"></div>
+        </section>
+    </main>
+</div>
