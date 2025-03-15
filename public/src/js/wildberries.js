@@ -5,16 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const preloader = document.getElementById('preloader');
     const errorMessage = document.getElementById('error-message');
 
-    // скрыть прелоадер и сообщения об ошибках изначально
     preloader.style.display = 'none';
     errorMessage.style.display = 'none';
 
-    // функция для отправки запроса и отображения изображений
     const fetchProductImages = async (productIDs) => {
         try {
-            // Показать preloader
             preloader.style.display = 'block';
-            productImagesList.innerHTML = ''; // очистить список
+            productImagesList.innerHTML = '';
             errorMessage.style.display = 'none';
 
             const response = await fetch('https://media.athebyme-market.ru:8081/api/media', {
@@ -22,9 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ productIDs }), // используем массив чисел
-                mode: 'cors', // Explicit CORS mode
-                credentials: 'same-origin', // Only send credentials if the URL is same-origin
+                body: JSON.stringify({ productIDs }),
+                mode: 'cors',
+                credentials: 'same-origin',
             });
 
             if (!response.ok) {
@@ -33,12 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let imageUrls = await response.json();
 
-            // Обновляем URL: принудительно устанавливаем протокол HTTPS и порт 8081 для каждого
             imageUrls = imageUrls.map(url => {
                 try {
                     const parsedUrl = new URL(url);
-                    parsedUrl.protocol = 'https:'; // принудительно HTTPS
-                    parsedUrl.port = '8081'; // устанавливаем порт
+                    parsedUrl.protocol = 'https:';
+                    parsedUrl.port = '8081';
                     return parsedUrl.toString();
                 } catch (e) {
                     console.error('Ошибка парсинга URL:', url, e);
@@ -46,16 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // проверяем, что данные - это массив
             if (!Array.isArray(imageUrls) || imageUrls.length === 0) {
                 throw new Error('Нет данных для отображения.');
             }
 
-            // Группируем изображения по ID товара
+            // группировка изображения по ID товара
             const productImagesMap = {};
-
             imageUrls.forEach(newUrl => {
-                // Извлекаем ID товара из URL (например, из "https://media.athebyme-market.ru:8081/9575/0.jpg" получаем "9575")
                 const matches = newUrl.match(/\/(\d+)\/\d+\.jpg$/);
                 if (matches && matches[1]) {
                     const productId = matches[1];
@@ -66,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // создание таблицы
             const table = document.createElement('table');
             table.classList.add('product-table');
             const thead = document.createElement('thead');
@@ -106,41 +98,55 @@ document.addEventListener('DOMContentLoaded', () => {
             productImagesList.appendChild(table);
         } catch (error) {
             console.error('Error:', error);
-            // Проверка на CORS ошибку
+            let friendlyMessage = '';
+
             if (error.message.includes('NetworkError') ||
                 error.message.includes('Failed to fetch') ||
                 error.message.includes('CORS')) {
-                errorMessage.textContent = 'Ошибка CORS: Сервер не разрешает запросы с этого источника. Необходимо настроить CORS на сервере или использовать прокси.';
+                friendlyMessage = 'Сетевая ошибка. Сервер может быть недоступен или возникла проблема с CORS. Попробуйте повторить запрос позже.';
+            } else if (error.message.includes('404')) {
+                friendlyMessage = 'Запрашиваемые данные не найдены (404). Проверьте правильность введённых ID товаров.';
             } else {
-                errorMessage.textContent = `Произошла ошибка: ${error.message}`;
+                friendlyMessage = `Произошла ошибка: ${error.message}`;
             }
+
+            errorMessage.innerHTML = `
+                <div class="error-notification">
+                    <h3>Упс! Что-то пошло не так</h3>
+                    <p>${friendlyMessage}</p>
+                    <p>Попробуйте обновить страницу или ввести другой артикул.</p>
+                </div>
+            `;
             errorMessage.style.display = 'block';
         } finally {
-            // Скрыть preloader
             preloader.style.display = 'none';
         }
     };
 
-    // обработчик формы
     productForm.addEventListener('submit', (event) => {
         event.preventDefault();
         const productIDsInputValue = productIDsInput.value.trim();
         if (productIDsInputValue === "") {
-            fetchProductImages(null); // если пусто, получить все фотографии
+            fetchProductImages(null);
             return;
         }
 
         const productIDs = productIDsInputValue
             .split(',')
-            .map(id => parseInt(id.trim(), 10)) // преобразуем в числа
-            .filter(id => !isNaN(id)); // убираем некорректные значения
+            .map(id => parseInt(id.trim(), 10))
+            .filter(id => !isNaN(id));
 
         const allNumbers = productIDsInputValue.split(',')
             .map(id => id.trim())
-            .every(id => /^[0-9]+$/.test(id)); // проверяем, что все ID - числа
+            .every(id => /^[0-9]+$/.test(id));
 
         if (!allNumbers) {
-            errorMessage.textContent = 'Пожалуйста, введите корректные ID товаров (только числа).';
+            errorMessage.innerHTML = `
+                <div class="error-notification">
+                    <h3>Некорректный ввод</h3>
+                    <p>Пожалуйста, введите корректные ID товаров (только числа).</p>
+                </div>
+            `;
             errorMessage.style.display = 'block';
             return;
         }
