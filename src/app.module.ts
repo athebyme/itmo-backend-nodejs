@@ -1,19 +1,13 @@
 import { Module } from '@nestjs/common';
-import { ConstructorModule } from './constructor/constructor.module';
-import { IndexModule } from './index/index.module';
-import { ConverterModule } from './converter/converter.module';
-import { MainModule } from './main/main.module';
-import { WildberriesModule } from './wildberries/wildberries.module';
+import { IndexController } from './index/index.controller';
+import {MainController} from "./main/main.controller";
+import {ConstructorController} from "./constructor/constructor.controller";
+import {ConverterController} from "./converter/converter.controller";
+import {WildberriesController} from "./wildberries/wildberries.controller";
 
 @Module({
-  imports: [
-    ConstructorModule,
-    IndexModule,
-    ConverterModule,
-    MainModule,
-    WildberriesModule,
-  ],
-  controllers: [],
+  imports: [],
+  controllers: [IndexController, MainController, ConverterController, ConstructorController, WildberriesController],
   providers: [],
 })
 export class AppModule {}

@@ -1,0 +1,45 @@
+<div class="layout">
+    <main class="main">
+        <section class="section section--about">
+            <h2 class="section__title">О сайте</h2>
+            <p class="section__text">Этот сайт предназначен для удобного <strong>управления</strong> товарами и отслеживания статистики.</p>
+        </section>
+
+        <section class="section section--gallery">
+            <h2 class="section__title">Пример вставки фото</h2>
+            <img src="https://i.pinimg.com/originals/0d/7a/f0/0d7af050f7bc56a4079b4f77f3680cb3.jpg" alt="Пример изображения" class="section__image">
+        </section>
+
+        <section class="section section--table">
+            <h2 class="section__title">Таблица товаров</h2>
+            <table class="product-table">
+                <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Цена, $</th>
+                    <th>Фото</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Револьвер ковбойский</td>
+                    <td>300</td>
+                    <td><img src="src/img/index/cowboy_revolver.png" alt="Револьвер ковбойский"></td>
+                </tr>
+                <tr>
+                    <td>Ковбойская шляпа</td>
+                    <td>50</td>
+                    <td><img src="src/img/index/cowboy_hat.png" alt="Ковбойская шляпа"></td>
+                </tr>
+                <tr>
+                    <td>Ковбойские ботинки</td>
+                    <td>100</td>
+                    <td><img src="src/img/index/cowboy_boots.jpg" alt="Ковбойские ботинки"></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <%- include('./partials/user-session') %>
+</div>

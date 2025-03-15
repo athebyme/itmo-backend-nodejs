@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     if (localStorage.getItem('isLoggedIn')) {
-        window.location.replace('./main.html');
+        window.location.replace('./main');
     } else {
         toastr.options = {
             closeButton: true,
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 setTimeout(function() {
-                    window.location.replace('./main.html');
+                    window.location.replace('./main');
                 }, 1000);
             } else {
                 if (typeof toastr !== 'undefined') {

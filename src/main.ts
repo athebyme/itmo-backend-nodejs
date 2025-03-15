@@ -1,4 +1,3 @@
-// main.ts
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
@@ -13,8 +12,7 @@ async function bootstrap() {
 
   const expressLayouts = require('express-ejs-layouts');
   app.use(expressLayouts);
-  app.setViewEngine('ejs');
-  app.set('layout', './main_layout');
+  app.set('layout', 'layouts/main_layout');
   app.set('layout extractScripts', true);
   app.set('layout extractStyles', true);
 

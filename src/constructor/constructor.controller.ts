@@ -8,7 +8,7 @@ export class ConstructorController {
         return {
             layout: 'main_layout',
             title: 'Конструктор таблицы',
-            body_scripts: '<script defer src="src/js/tableConstructor.js"></script><script defer src="src/js/menuActive.js"></script>',
+            body_scripts: '<script defer src="src/js/tableConstructor.js"><script src="src/js/loadTime.js"></script><script defer src="src/js/menuActive.js"></script>',
             head_extra: '',
         };
     }

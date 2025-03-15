@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
             toastr.success("Вы успешно вышли из системы.");
 
             setTimeout(function() {
-                window.location.replace('./index.html');
+                window.location.replace('./');
             }, 2000);
         });
     } else {
