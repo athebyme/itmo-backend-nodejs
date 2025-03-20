@@ -1,0 +1,285 @@
+<div class="layout">
+    <main class="main">
+        <!-- Seller Selection and Controls -->
+        <section class="section mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+                <h2 class="section__title mb-0">Статистика продаж</h2>
+
+                <div class="d-flex gap-2 align-items-center">
+                    <div class="form-group mb-0">
+                        <select id="sellerSelect" class="form-select">
+                            <option value="bananzza" <%= seller === 'bananzza' ? 'selected' : '' %>>Bananzza</option>
+                            <option value="lasciva" <%= seller === 'lasciva' ? 'selected' : '' %>>Lasciva</option>
+                        </select>
+                    </div>
+                    <button id="refreshBtn" class="btn btn-primary d-flex align-items-center">
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Обновить
+                    </button>
+                </div>
+            </div>
+
+            <div id="apiStatus" class="alert alert-info d-none mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <span>Загрузка данных с сервера...</span>
+                </div>
+            </div>
+
+            <div id="apiError" class="alert alert-danger d-none mb-4">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span id="errorMessage">Ошибка при загрузке данных.</span>
+            </div>
+        </section>
+
+        <!-- Overview Stats Section -->
+        <section class="section mb-4">
+            <h3 class="section__title">Общая статистика</h3>
+
+            <div class="row g-4" id="overview-stats">
+                <!-- Total Products Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-muted mb-2">Товары</h6>
+                                    <h3 class="mb-0" id="totalProducts">-</h3>
+                                </div>
+                                <div class="p-2 rounded-circle" style="background-color: rgba(93, 95, 239, 0.1);">
+                                    <i class="bi bi-box text-primary" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Stock Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-muted mb-2">Общий остаток</h6>
+                                    <h3 class="mb-0" id="totalStock">-</h3>
+                                </div>
+                                <div class="p-2 rounded-circle" style="background-color: rgba(20, 184, 166, 0.1);">
+                                    <i class="bi bi-box-seam text-secondary" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Average Price Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-muted mb-2">Средняя цена</h6>
+                                    <h3 class="mb-0" id="avgPrice">-</h3>
+                                </div>
+                                <div class="p-2 rounded-circle" style="background-color: rgba(245, 158, 11, 0.1);">
+                                    <i class="bi bi-tag text-warning" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Low Stock Items Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-muted mb-2">Товары с низким остатком</h6>
+                                    <h3 class="mb-0" id="lowStockItems">-</h3>
+                                </div>
+                                <div class="p-2 rounded-circle" style="background-color: rgba(239, 68, 68, 0.1);">
+                                    <i class="bi bi-exclamation-circle text-danger" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Price & Stock Charts Section -->
+        <section class="section mb-4">
+            <div class="row g-4">
+                <!-- Price Changes Chart -->
+                <div class="col-lg-6">
+                    <div class="card border-0 h-100">
+                        <div class="card-header bg-white border-0">
+                            <h5 class="card-title">Динамика цен</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="priceChangesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Changes Chart -->
+                <div class="col-lg-6">
+                    <div class="card border-0 h-100">
+                        <div class="card-header bg-white border-0">
+                            <h5 class="card-title">Динамика остатков</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="stockChangesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Top Products Section -->
+        <section class="section mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="section__title mb-0">Топ товаров</h3>
+
+                <div class="d-flex gap-2">
+                    <select id="topProductsLimit" class="form-select form-select-sm" style="width: auto;">
+                        <option value="5">5 товаров</option>
+                        <option value="10" selected>10 товаров</option>
+                        <option value="20">20 товаров</option>
+                    </select>
+                    <select id="topProductsSort" class="form-select form-select-sm" style="width: auto;">
+                        <option value="priceChange">По изменению цены</option>
+                        <option value="stockChange">По изменению остатков</option>
+                        <option value="price">По цене</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table mb-0" id="topProductsTable">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Артикул</th>
+                            <th>Цена</th>
+                            <th>Изм. цены</th>
+                            <th>Остаток</th>
+                            <th>Изм. остатков</th>
+                            <th>Обновлен</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td colspan="8" class="text-center">Загрузка данных...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Changes Section -->
+        <section class="section mb-4">
+            <ul class="nav nav-tabs mb-3" id="changesTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="price-changes-tab" data-bs-toggle="tab" data-bs-target="#price-changes" type="button" role="tab" aria-controls="price-changes" aria-selected="true">
+                        Изменения цен
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="stock-changes-tab" data-bs-toggle="tab" data-bs-target="#stock-changes" type="button" role="tab" aria-controls="stock-changes" aria-selected="false">
+                        Изменения остатков
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="changesTabContent">
+                <!-- Price Changes Tab -->
+                <div class="tab-pane fade show active" id="price-changes" role="tabpanel" aria-labelledby="price-changes-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Недавние изменения цен</h5>
+                        <select id="priceChangesLimit" class="form-select form-select-sm" style="width: auto;">
+                            <option value="10">10 записей</option>
+                            <option value="20" selected>20 записей</option>
+                            <option value="50">50 записей</option>
+                        </select>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="table-responsive">
+                            <table class="table mb-0" id="priceChangesTable">
+                                <thead>
+                                <tr>
+                                    <th>Товар</th>
+                                    <th>Артикул</th>
+                                    <th>Старая цена</th>
+                                    <th>Новая цена</th>
+                                    <th>Изменение</th>
+                                    <th>Процент</th>
+                                    <th>Дата</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td colspan="7" class="text-center">Загрузка данных...</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Changes Tab -->
+                <div class="tab-pane fade" id="stock-changes" role="tabpanel" aria-labelledby="stock-changes-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Недавние изменения остатков</h5>
+                        <div class="d-flex gap-2">
+                            <select id="warehouseFilter" class="form-select form-select-sm" style="width: auto;">
+                                <option value="">Все склады</option>
+                            </select>
+                            <select id="stockChangesLimit" class="form-select form-select-sm" style="width: auto;">
+                                <option value="10">10 записей</option>
+                                <option value="20" selected>20 записей</option>
+                                <option value="50">50 записей</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="table-responsive">
+                            <table class="table mb-0" id="stockChangesTable">
+                                <thead>
+                                <tr>
+                                    <th>Товар</th>
+                                    <th>Артикул</th>
+                                    <th>Склад</th>
+                                    <th>Старый остаток</th>
+                                    <th>Новый остаток</th>
+                                    <th>Изменение</th>
+                                    <th>Процент</th>
+                                    <th>Дата</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td colspan="8" class="text-center">Загрузка данных...</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <%- include('./partials/user-session') %>
+</div>
