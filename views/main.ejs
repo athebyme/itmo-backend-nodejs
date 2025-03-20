@@ -1,45 +1,242 @@
 <div class="layout">
     <main class="main">
-        <section class="section section--about">
-            <h2 class="section__title">О сайте</h2>
-            <p class="section__text">Этот сайт предназначен для удобного <strong>управления</strong> товарами и отслеживания статистики.</p>
+        <!-- Hero Welcome Section -->
+        <section class="section mb-4">
+            <div class="p-4 mb-4 bg-primary text-white rounded-3 shadow-sm position-relative overflow-hidden">
+                <div class="position-absolute top-0 end-0 p-5 opacity-10">
+                    <i class="bi bi-box-seam" style="font-size: 8rem;"></i>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="fw-bold">Добро пожаловать, <span id="welcomeUsername">Продавец</span>!</h2>
+                        <p class="mb-3 opacity-75">
+                            Управляйте вашими товарами, отслеживайте продажи и анализируйте статистику в одном месте.
+                        </p>
+                        <a href="/wildberries" class="btn btn-light text-primary">
+                            <i class="bi bi-images me-2"></i>Управление товарами
+                        </a>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <section class="section section--gallery">
-            <h2 class="section__title">Пример вставки фото</h2>
-            <img src="https://i.pinimg.com/originals/0d/7a/f0/0d7af050f7bc56a4079b4f77f3680cb3.jpg" alt="Пример изображения" class="section__image">
+        <!-- Stats Section -->
+        <section class="section mb-4">
+            <h2 class="section__title">Ключевые показатели</h2>
+
+            <div class="row g-4">
+                <!-- Sales Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-muted mb-2">Продажи</h6>
+                                    <h3 class="mb-0">₽124,500</h3>
+                                    <p class="small text-success mt-2 mb-0">
+                                        <i class="bi bi-arrow-up-short"></i> +12% с прошлого месяца
+                                    </p>
+                                </div>
+                                <div class="p-2 rounded-circle" style="background-color: rgba(93, 95, 239, 0.1);">
+                                    <i class="bi bi-cart text-primary" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-muted mb-2">Заказы</h6>
+                                    <h3 class="mb-0">284</h3>
+                                    <p class="small text-success mt-2 mb-0">
+                                        <i class="bi bi-arrow-up-short"></i> +8% с прошлого месяца
+                                    </p>
+                                </div>
+                                <div class="p-2 rounded-circle" style="background-color: rgba(20, 184, 166, 0.1);">
+                                    <i class="bi bi-box text-secondary" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visitors Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-muted mb-2">Просмотры</h6>
+                                    <h3 class="mb-0">12,847</h3>
+                                    <p class="small text-success mt-2 mb-0">
+                                        <i class="bi bi-arrow-up-short"></i> +24% с прошлого месяца
+                                    </p>
+                                </div>
+                                <div class="p-2 rounded-circle" style="background-color: rgba(245, 158, 11, 0.1);">
+                                    <i class="bi bi-eye text-warning" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rating Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-muted mb-2">Рейтинг</h6>
+                                    <h3 class="mb-0">4.8</h3>
+                                    <p class="small text-success mt-2 mb-0">
+                                        <i class="bi bi-arrow-up-short"></i> +0.2 с прошлого месяца
+                                    </p>
+                                </div>
+                                <div class="p-2 rounded-circle" style="background-color: rgba(239, 68, 68, 0.1);">
+                                    <i class="bi bi-star text-danger" style="font-size: 1.5rem;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <section class="section section--table">
-            <h2 class="section__title">Таблица товаров</h2>
-            <table class="product-table">
-                <thead>
-                <tr>
-                    <th>Название</th>
-                    <th>Цена, $</th>
-                    <th>Фото</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>Револьвер ковбойский</td>
-                    <td>300</td>
-                    <td><img src="src/img/index/cowboy_revolver.png" alt="Револьвер ковбойский"></td>
-                </tr>
-                <tr>
-                    <td>Ковбойская шляпа</td>
-                    <td>50</td>
-                    <td><img src="src/img/index/cowboy_hat.png" alt="Ковбойская шляпа"></td>
-                </tr>
-                <tr>
-                    <td>Ковбойские ботинки</td>
-                    <td>100</td>
-                    <td><img src="src/img/index/cowboy_boots.jpg" alt="Ковбойские ботинки"></td>
-                </tr>
-                </tbody>
-            </table>
+        <!-- Recent Orders Section -->
+        <section class="section mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="section__title mb-0">Последние заказы</h2>
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    Смотреть все
+                </a>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                        <tr>
+                            <th>№ заказа</th>
+                            <th>Товар</th>
+                            <th>Дата</th>
+                            <th>Статус</th>
+                            <th>Сумма</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>#ORD-2831</td>
+                            <td>Стильные кроссовки</td>
+                            <td>15.03.2025</td>
+                            <td><span class="badge bg-success">Доставлен</span></td>
+                            <td>₽5,800</td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-2830</td>
+                            <td>Спортивная куртка</td>
+                            <td>14.03.2025</td>
+                            <td><span class="badge bg-warning text-dark">В пути</span></td>
+                            <td>₽7,200</td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-2829</td>
+                            <td>Зимняя шапка</td>
+                            <td>12.03.2025</td>
+                            <td><span class="badge bg-success">Доставлен</span></td>
+                            <td>₽1,400</td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-2828</td>
+                            <td>Модные джинсы</td>
+                            <td>10.03.2025</td>
+                            <td><span class="badge bg-success">Доставлен</span></td>
+                            <td>₽3,600</td>
+                        </tr>
+                        <tr>
+                            <td>#ORD-2827</td>
+                            <td>Солнцезащитные очки</td>
+                            <td>08.03.2025</td>
+                            <td><span class="badge bg-danger">Отменен</span></td>
+                            <td>₽2,500</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="section">
+            <h2 class="section__title">Быстрые действия</h2>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <a href="/wildberries" class="card border-0 shadow-sm h-100 text-decoration-none">
+                        <div class="card-body text-center p-4">
+                            <div class="p-3 mx-auto mb-3 rounded-circle" style="background-color: rgba(93, 95, 239, 0.1); width: fit-content;">
+                                <i class="bi bi-images text-primary" style="font-size: 2rem;"></i>
+                            </div>
+                            <h5 class="card-title">Товары Wildberries</h5>
+                            <p class="card-text text-muted">Управление изображениями товаров</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <a href="/constructor" class="card border-0 shadow-sm h-100 text-decoration-none">
+                        <div class="card-body text-center p-4">
+                            <div class="p-3 mx-auto mb-3 rounded-circle" style="background-color: rgba(20, 184, 166, 0.1); width: fit-content;">
+                                <i class="bi bi-table text-secondary" style="font-size: 2rem;"></i>
+                            </div>
+                            <h5 class="card-title">Конструктор</h5>
+                            <p class="card-text text-muted">Создание и управление таблицами</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <a href="/converter" class="card border-0 shadow-sm h-100 text-decoration-none">
+                        <div class="card-body text-center p-4">
+                            <div class="p-3 mx-auto mb-3 rounded-circle" style="background-color: rgba(245, 158, 11, 0.1); width: fit-content;">
+                                <i class="bi bi-currency-exchange text-warning" style="font-size: 2rem;"></i>
+                            </div>
+                            <h5 class="card-title">Конвертер</h5>
+                            <p class="card-text text-muted">Конвертация криптовалют</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <a href="#" class="card border-0 shadow-sm h-100 text-decoration-none">
+                        <div class="card-body text-center p-4">
+                            <div class="p-3 mx-auto mb-3 rounded-circle" style="background-color: rgba(239, 68, 68, 0.1); width: fit-content;">
+                                <i class="bi bi-bar-chart text-danger" style="font-size: 2rem;"></i>
+                            </div>
+                            <h5 class="card-title">Статистика</h5>
+                            <p class="card-text text-muted">Анализ продаж и посещаемости</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </section>
     </main>
 
     <%- include('./partials/user-session') %>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const username = localStorage.getItem('username');
+        if (username) {
+            const welcomeUsername = document.getElementById('welcomeUsername');
+            if (welcomeUsername) {
+                welcomeUsername.textContent = username;
+            }
+        }
+    });
+</script>
