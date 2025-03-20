@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     sellerSelect.value = currentSeller;
 
     // Base API URL
-    const getApiBaseUrl = () => `https://199.83.103.182/${currentSeller}`;
+    const getApiBaseUrl = () => `http://199.83.103.182/${currentSeller}`;
 
     // Initialize data loading
     loadAllData();
@@ -82,7 +82,87 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(err => {
                 hideLoading();
                 showError('Произошла ошибка при загрузке данных: ' + err.message);
+                console.error('Loading error:', err);
+
+                // Load mock data if the API fails
+                loadMockData();
             });
+    }
+
+    // Load mock data when API is unavailable
+    function loadMockData() {
+        toastr.warning('Загружены демонстрационные данные, так как API недоступен');
+
+        // Mock overview stats
+        document.getElementById('totalProducts').textContent = '142';
+        document.getElementById('totalStock').textContent = '15,876';
+        document.getElementById('avgPrice').textContent = '3 500 ₽';
+        document.getElementById('lowStockItems').textContent = '12';
+
+        // Mock top products
+        const mockProducts = [
+            {id: 101, name: 'Футболка спортивная', vendorCode: 'FS-001', currentPrice: 1500, priceChange: 12.5, totalStock: 230, stockChange: -5.2, lastUpdated: '15.03.2025 12:45'},
+            {id: 102, name: 'Кроссовки беговые', vendorCode: 'KB-103', currentPrice: 4500, priceChange: -3.8, totalStock: 54, stockChange: -15.4, lastUpdated: '14.03.2025 10:30'},
+            {id: 103, name: 'Куртка зимняя', vendorCode: 'KZ-201', currentPrice: 8700, priceChange: 5.2, totalStock: 32, stockChange: 25.0, lastUpdated: '15.03.2025 09:15'},
+            {id: 104, name: 'Шапка вязаная', vendorCode: 'SV-050', currentPrice: 950, priceChange: 0.0, totalStock: 120, stockChange: 10.5, lastUpdated: '13.03.2025 14:20'},
+            {id: 105, name: 'Перчатки спортивные', vendorCode: 'PS-075', currentPrice: 780, priceChange: -8.5, totalStock: 86, stockChange: -30.2, lastUpdated: '15.03.2025 16:10'},
+        ];
+
+        updateTopProductsTable(mockProducts);
+
+        // Create mock charts
+        const chartLabels = mockProducts.map(p => p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name);
+        const priceData = mockProducts.map(p => p.priceChange);
+        const stockData = mockProducts.map(p => p.stockChange);
+
+        priceChangesChart = initChart('priceChangesChart', 'bar', chartLabels, [
+            {
+                label: 'Изменение цены (%)',
+                data: priceData,
+                backgroundColor: priceData.map(val => val >= 0 ? 'rgba(20, 184, 166, 0.5)' : 'rgba(239, 68, 68, 0.5)'),
+                borderColor: priceData.map(val => val >= 0 ? 'rgb(20, 184, 166)' : 'rgb(239, 68, 68)'),
+                borderWidth: 1
+            }
+        ]);
+
+        stockChangesChart = initChart('stockChangesChart', 'bar', chartLabels, [
+            {
+                label: 'Изменение остатков (%)',
+                data: stockData,
+                backgroundColor: stockData.map(val => val >= 0 ? 'rgba(93, 95, 239, 0.5)' : 'rgba(239, 68, 68, 0.5)'),
+                borderColor: stockData.map(val => val >= 0 ? 'rgb(93, 95, 239)' : 'rgb(239, 68, 68)'),
+                borderWidth: 1
+            }
+        ]);
+
+        // Mock price changes
+        const mockPriceChanges = [
+            {productName: 'Футболка спортивная', vendorCode: 'FS-001', oldPrice: 1200, newPrice: 1500, changeAmount: 300, changePercent: 25.0, date: '2025-03-15T12:45:00'},
+            {productName: 'Кроссовки беговые', vendorCode: 'KB-103', oldPrice: 4680, newPrice: 4500, changeAmount: -180, changePercent: -3.8, date: '2025-03-14T10:30:00'},
+            {productName: 'Куртка зимняя', vendorCode: 'KZ-201', oldPrice: 8200, newPrice: 8700, changeAmount: 500, changePercent: 6.1, date: '2025-03-15T09:15:00'},
+            {productName: 'Перчатки спортивные', vendorCode: 'PS-075', oldPrice: 850, newPrice: 780, changeAmount: -70, changePercent: -8.2, date: '2025-03-15T16:10:00'},
+        ];
+
+        updatePriceChangesTable(mockPriceChanges);
+
+        // Mock stock changes
+        const mockStockChanges = [
+            {productName: 'Футболка спортивная', vendorCode: 'FS-001', warehouseName: 'Центральный', oldAmount: 245, newAmount: 230, changeAmount: -15, changePercent: -6.1, date: '2025-03-15T12:45:00'},
+            {productName: 'Кроссовки беговые', vendorCode: 'KB-103', warehouseName: 'Южный', oldAmount: 62, newAmount: 54, changeAmount: -8, changePercent: -12.9, date: '2025-03-14T10:30:00'},
+            {productName: 'Куртка зимняя', vendorCode: 'KZ-201', warehouseName: 'Центральный', oldAmount: 25, newAmount: 32, changeAmount: 7, changePercent: 28.0, date: '2025-03-15T09:15:00'},
+            {productName: 'Шапка вязаная', vendorCode: 'SV-050', warehouseName: 'Восточный', oldAmount: 106, newAmount: 120, changeAmount: 14, changePercent: 13.2, date: '2025-03-13T14:20:00'},
+        ];
+
+        updateStockChangesTable(mockStockChanges);
+
+        // Mock warehouses
+        warehouseFilter.innerHTML = '<option value="">Все склады</option>';
+        ['Центральный', 'Южный', 'Восточный', 'Западный'].forEach((name, index) => {
+            const option = document.createElement('option');
+            option.value = index + 1;
+            option.textContent = name;
+            warehouseFilter.appendChild(option);
+        });
     }
 
     // Show loading indicator
@@ -147,6 +227,68 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             return `<span class="badge bg-secondary">0%</span>`;
         }
+    }
+
+    // Update top products table
+    function updateTopProductsTable(products) {
+        const tableBody = document.querySelector('#topProductsTable tbody');
+        tableBody.innerHTML = '';
+
+        products.forEach(product => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${product.id}</td>
+                <td>${product.name}</td>
+                <td>${product.vendorCode}</td>
+                <td>${formatCurrency(product.currentPrice)}</td>
+                <td>${getChangeBadge(product.priceChange)}</td>
+                <td>${formatNumber(product.totalStock)}</td>
+                <td>${getChangeBadge(product.stockChange)}</td>
+                <td>${product.lastUpdated}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Update price changes table
+    function updatePriceChangesTable(changes) {
+        const tableBody = document.querySelector('#priceChangesTable tbody');
+        tableBody.innerHTML = '';
+
+        changes.forEach(change => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${change.productName}</td>
+                <td>${change.vendorCode}</td>
+                <td>${formatCurrency(change.oldPrice)}</td>
+                <td>${formatCurrency(change.newPrice)}</td>
+                <td>${formatCurrency(change.changeAmount)}</td>
+                <td>${getChangeBadge(change.changePercent)}</td>
+                <td>${formatDate(change.date)}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Update stock changes table
+    function updateStockChangesTable(changes) {
+        const tableBody = document.querySelector('#stockChangesTable tbody');
+        tableBody.innerHTML = '';
+
+        changes.forEach(change => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${change.productName}</td>
+                <td>${change.vendorCode}</td>
+                <td>${change.warehouseName}</td>
+                <td>${formatNumber(change.oldAmount)}</td>
+                <td>${formatNumber(change.newAmount)}</td>
+                <td>${formatNumber(change.changeAmount)}</td>
+                <td>${getChangeBadge(change.changePercent)}</td>
+                <td>${formatDate(change.date)}</td>
+            `;
+            tableBody.appendChild(row);
+        });
     }
 
     // Initialize a chart
@@ -238,22 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            tableBody.innerHTML = '';
-
-            products.forEach(product => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${product.id}</td>
-                    <td>${product.name}</td>
-                    <td>${product.vendorCode}</td>
-                    <td>${formatCurrency(product.currentPrice)}</td>
-                    <td>${getChangeBadge(product.priceChange)}</td>
-                    <td>${formatNumber(product.totalStock)}</td>
-                    <td>${getChangeBadge(product.stockChange)}</td>
-                    <td>${product.lastUpdated}</td>
-                `;
-                tableBody.appendChild(row);
-            });
+            updateTopProductsTable(products);
 
             // Prepare data for charts
             const chartLabels = products.slice(0, 5).map(p => p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name);
@@ -309,21 +436,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            tableBody.innerHTML = '';
-
-            changes.forEach(change => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${change.productName}</td>
-                    <td>${change.vendorCode}</td>
-                    <td>${formatCurrency(change.oldPrice)}</td>
-                    <td>${formatCurrency(change.newPrice)}</td>
-                    <td>${formatCurrency(change.changeAmount)}</td>
-                    <td>${getChangeBadge(change.changePercent)}</td>
-                    <td>${formatDate(change.date)}</td>
-                `;
-                tableBody.appendChild(row);
-            });
+            updatePriceChangesTable(changes);
 
             return changes;
         } catch (error) {
@@ -359,22 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            tableBody.innerHTML = '';
-
-            changes.forEach(change => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${change.productName}</td>
-                    <td>${change.vendorCode}</td>
-                    <td>${change.warehouseName}</td>
-                    <td>${formatNumber(change.oldAmount)}</td>
-                    <td>${formatNumber(change.newAmount)}</td>
-                    <td>${formatNumber(change.changeAmount)}</td>
-                    <td>${getChangeBadge(change.changePercent)}</td>
-                    <td>${formatDate(change.date)}</td>
-                `;
-                tableBody.appendChild(row);
-            });
+            updateStockChangesTable(changes);
 
             return changes;
         } catch (error) {
