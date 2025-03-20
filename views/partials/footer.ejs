@@ -1,6 +1,16 @@
 <footer class="footer">
-    <p class="footer__text">Дата + Лого + © 2024</p>
-    <aside class="nav__logo-wrapper">
-        <img src="src/img/logo.png" alt="лого сайта" class="nav__logo">
-    </aside>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 text-center text-md-start">
+                <p class="footer__text">
+                    <span id="currentYear"><script>document.write(new Date().getFullYear())</script></span> © Панель управления
+                    <span class="d-none d-md-inline">| Все права защищены</span>
+                </p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <img src="src/img/logo.png" alt="Логотип" height="24" class="me-2">
+                <span class="text-primary fw-bold">Seller Dashboard</span>
+            </div>
+        </div>
+    </div>
 </footer>

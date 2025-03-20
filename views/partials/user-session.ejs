@@ -1,7 +1,29 @@
-<aside class="aside-wrapper">
+<aside class="aside-wrapper d-none d-lg-block">
     <aside class="aside">
-        <div class="aside__title">Личный кабинет</div>
-        <div class="aside__text">Добро пожаловать, <span id="usernameDisplay">[Имя пользователя]</span></div>
-        <a id="logoutLink" class="logoutLink">Выйти</a>
+        <div class="aside__title">
+            <i class="bi bi-person-circle me-2"></i>
+            Личный кабинет
+        </div>
+
+        <div class="aside__text">
+            <p>
+                <strong>Статус:</strong>
+                <span class="badge bg-success">Активен</span>
+            </p>
+            <p>
+                <strong>Пользователь:</strong><br>
+                <span id="usernameDisplay">[Имя пользователя]</span>
+            </p>
+            <p>
+                <strong>Последний вход:</strong><br>
+                <span id="lastLogin"><script>document.write(new Date().toLocaleDateString())</script></span>
+            </p>
+        </div>
+
+        <div class="d-grid gap-2">
+            <a id="logoutLink" class="logoutLink">
+                Выйти из системы
+            </a>
+        </div>
     </aside>
 </aside>
