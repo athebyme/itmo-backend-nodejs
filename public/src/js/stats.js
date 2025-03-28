@@ -159,22 +159,32 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Apply price filters
-    function applyPriceFilters() {
-        console.log("Applying price filters");
+    function applyPriceFilters(e) {
+        // Prevent default form submission
+        if (e) e.preventDefault();
 
-        // Store the filter values directly in form-field variables
-        // We'll read from these when building the request
+        console.log("Applying price filters with values:");
+        console.log("Min % Change:", priceMinChangePercent.value);
+        console.log("Max % Change:", priceMaxChangePercent.value);
+        console.log("Min Amount Change:", priceMinChangeAmount.value);
+        console.log("Since Date:", priceSince.value);
+        console.log("Only Increases:", onlyPriceIncreases.checked);
+        console.log("Only Decreases:", onlyPriceDecreases.checked);
 
         // Force reload data with new filter - true forces a reset
         loadPriceChanges(true);
     }
 
     // Apply stock filters
-    function applyStockFilters() {
-        console.log("Applying stock filters");
+    function applyStockFilters(e) {
+        // Prevent default form submission
+        if (e) e.preventDefault();
 
-        // Store the filter values directly in form-field variables
-        // We'll read from these when building the request
+        console.log("Applying stock filters with values:");
+        console.log("Warehouse:", warehouseFilter.value);
+        console.log("Min % Change:", stockMinChangePercent.value);
+        console.log("Min Amount Change:", stockMinChangeAmount.value);
+        console.log("Since Date:", stockSince.value);
 
         // Force reload data with new filter - true forces a reset
         loadStockChanges(true);
@@ -297,22 +307,26 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add filter parameters directly to the root of the request (NOT in a filter object)
             if (warehouseFilter.value) {
                 requestBody.warehouseId = parseInt(warehouseFilter.value);
+                console.log("Added warehouseId:", requestBody.warehouseId);
             }
 
             if (stockMinChangePercent.value) {
                 requestBody.minChangePercent = parseFloat(stockMinChangePercent.value);
+                console.log("Added minChangePercent:", requestBody.minChangePercent);
             }
 
             if (stockMinChangeAmount.value) {
                 requestBody.minChangeAmount = parseInt(stockMinChangeAmount.value);
+                console.log("Added minChangeAmount:", requestBody.minChangeAmount);
             }
 
             if (stockSince.value) {
                 // Format the date to match the API's expected format
                 requestBody.since = stockSince.value;
+                console.log("Added since:", requestBody.since);
             }
 
-            console.log("Sending stock changes request:", JSON.stringify(requestBody));
+            console.log("Sending stock changes request:", JSON.stringify(requestBody, null, 2));
 
             const response = await fetch(`${getApiBaseUrl()}/api/stats/stock-changes`, {
                 method: 'POST',
