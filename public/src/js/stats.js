@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Added minChangePercent:", percentValue, "Type:", typeof percentValue);
         }
 
+
         // Max percentage change
         if (priceMaxChangePercent.value && priceMaxChangePercent.value !== "") {
             const percentValue = parseFloat(priceMaxChangePercent.value);
