@@ -486,26 +486,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function updatePriceChangesTable() {
         const tableBody = priceChangesTable.querySelector('tbody');
 
+        // Clear the table completely when we're updating with filtered results
+        tableBody.innerHTML = '';
+
         if (priceState.items.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="7" class="text-center">Нет данных</td></tr>';
             return;
         }
 
-        // Clear the table before adding new rows (unless we're appending)
-        if (tableBody.querySelector('td[colspan="7"]')) {
-            tableBody.innerHTML = '';
-        }
-
         // Add each item to the table
         priceState.items.forEach(change => {
-            // Skip if this row already exists (check by combination of id and date)
-            const rowId = `price-${change.productId}-${new Date(change.date).getTime()}`;
-            if (tableBody.querySelector(`#${rowId}`)) {
-                return;
-            }
-
             const row = document.createElement('tr');
-            row.id = rowId;
 
             // Format the date to match the screenshot format
             const date = new Date(change.date);
@@ -516,14 +507,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 : `<span class="badge bg-danger">${change.changePercent.toFixed(1)}%</span>`;
 
             row.innerHTML = `
-                <td>${change.productName}</td>
-                <td>${change.vendorCode}</td>
-                <td>${change.oldPrice} ₽</td>
-                <td>${change.newPrice} ₽</td>
-                <td>${change.changeAmount} ₽</td>
-                <td>${percentBadge}</td>
-                <td>${formattedDate}</td>
-            `;
+            <td>${change.productName}</td>
+            <td>${change.vendorCode}</td>
+            <td>${change.oldPrice} ₽</td>
+            <td>${change.newPrice} ₽</td>
+            <td>${change.changeAmount} ₽</td>
+            <td>${percentBadge}</td>
+            <td>${formattedDate}</td>
+        `;
 
             tableBody.appendChild(row);
         });
