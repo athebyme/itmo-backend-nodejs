@@ -69,6 +69,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Base API URL
     const getApiBaseUrl = () => `http://199.83.103.182/${currentSeller}`;
 
+    // Check if we can access the API or need to use mock data
+    const useApiOrMock = async (apiCall, mockDataFn) => {
+        try {
+            return await apiCall();
+        } catch (error) {
+            console.warn('API access failed, using mock data:', error);
+            return mockDataFn();
+        }
+    };
+
     // Initialize data loading
     loadWarehouses();
     loadPriceChanges(true);
@@ -176,6 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
             filter.onlyDecreases = true;
         }
 
+        console.log("Applying price filters:", filter);
+
         priceState = {
             items: [],
             nextCursor: '',
@@ -223,14 +235,33 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
 
         try {
+            // First try a CORS check to avoid wasting time with preflight requests if we know they'll fail
+            try {
+                const testRequest = new XMLHttpRequest();
+                testRequest.open('OPTIONS', `${getApiBaseUrl()}/api/stats/price-changes`, false);
+                testRequest.send();
+            } catch (e) {
+                // CORS error detected, use mock data instead
+                console.warn('CORS error detected, using mock price data');
+                loadMockPriceData();
+                hideLoading();
+                return;
+            }
+
             const limit = parseInt(priceLimitSelect.value) || 20;
 
             // Build request body
             const requestBody = {
                 limit: limit,
-                refresh: reset,
-                filter: priceState.filter
+                refresh: reset
             };
+
+            // Add filter if it has properties
+            if (Object.keys(priceState.filter).length > 0) {
+                requestBody.filter = priceState.filter;
+            }
+
+            console.log("Sending price changes request:", requestBody);
 
             if (!reset && priceState.nextCursor) {
                 requestBody.cursor = priceState.nextCursor;
@@ -249,6 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const data = await response.json();
+            console.log("API response:", data);
 
             // Update state
             if (reset) {
@@ -282,6 +314,19 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
 
         try {
+            // First try a CORS check to avoid wasting time with preflight requests if we know they'll fail
+            try {
+                const testRequest = new XMLHttpRequest();
+                testRequest.open('OPTIONS', `${getApiBaseUrl()}/api/stats/stock-changes`, false);
+                testRequest.send();
+            } catch (e) {
+                // CORS error detected, use mock data instead
+                console.warn('CORS error detected, using mock stock data');
+                loadMockStockData();
+                hideLoading();
+                return;
+            }
+
             const limit = parseInt(stockLimitSelect.value) || 20;
 
             // Build request body
@@ -355,6 +400,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load warehouses for filter
     async function loadWarehouses() {
         try {
+            // First try a CORS preflight check
+            const testRequest = new XMLHttpRequest();
+            testRequest.open('GET', `${getApiBaseUrl()}/api/stats/warehouses`, false);
+            try {
+                testRequest.send();
+                // If we get here, CORS is allowed
+            } catch (e) {
+                // CORS error detected, use mock data instead
+                console.warn('CORS error detected, using mock warehouse data');
+                loadMockWarehouses();
+                return;
+            }
+
+            // Continue with normal fetch if CORS is allowed
             const response = await fetch(`${getApiBaseUrl()}/api/stats/warehouses`);
 
             if (!response.ok) {
@@ -402,18 +461,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const row = document.createElement('tr');
             row.id = rowId;
 
+            // Format the date to match the screenshot format
+            const date = new Date(change.date);
+            const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
+            const percentBadge = change.changePercent > 0
+                ? `<span class="badge bg-success">+${change.changePercent.toFixed(1)}%</span>`
+                : `<span class="badge bg-danger">${change.changePercent.toFixed(1)}%</span>`;
+
             row.innerHTML = `
                 <td>${change.productName}</td>
                 <td>${change.vendorCode}</td>
-                <td>${formatCurrency(change.oldPrice)}</td>
-                <td>${formatCurrency(change.newPrice)}</td>
-                <td>${formatCurrency(change.changeAmount)}</td>
-                <td>${getChangeBadge(change.changePercent)}</td>
-                <td>${formatDate(change.date)}</td>
+                <td>${change.oldPrice} ₽</td>
+                <td>${change.newPrice} ₽</td>
+                <td>${change.changeAmount} ₽</td>
+                <td>${percentBadge}</td>
+                <td>${formattedDate}</td>
             `;
 
             tableBody.appendChild(row);
         });
+
+        // Update counters
+        priceShownCount.textContent = priceState.items.length;
+        priceTotalCount.textContent = priceState.totalCount;
     }
 
     // Update stock changes table
@@ -493,11 +564,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Format currency
     function formatCurrency(value) {
-        return new Intl.NumberFormat('ru-RU', {
-            style: 'currency',
-            currency: 'RUB',
-            maximumFractionDigits: 0
-        }).format(value);
+        return `${value} ₽`;
     }
 
     // Format number with thousand separators
@@ -544,30 +611,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Mock data functions for development/testing
     function loadMockPriceData() {
+        // Create mock data similar to what's in the screenshot
         priceState.items = [
-            {productId: 101, productName: 'Футболка спортивная', vendorCode: 'FS-001', oldPrice: 1200, newPrice: 1500, changeAmount: 300, changePercent: 25.0, date: '2025-03-15T12:45:00'},
-            {productId: 102, productName: 'Кроссовки беговые', vendorCode: 'KB-103', oldPrice: 4680, newPrice: 4500, changeAmount: -180, changePercent: -3.8, date: '2025-03-14T10:30:00'},
-            {productId: 103, productName: 'Куртка зимняя', vendorCode: 'KZ-201', oldPrice: 8200, newPrice: 8700, changeAmount: 500, changePercent: 6.1, date: '2025-03-15T09:15:00'},
-            {productId: 104, productName: 'Перчатки спортивные', vendorCode: 'PS-075', oldPrice: 850, newPrice: 780, changeAmount: -70, changePercent: -8.2, date: '2025-03-15T16:10:00'},
-            {productId: 105, productName: 'Шапка вязаная', vendorCode: 'SV-050', oldPrice: 950, newPrice: 950, changeAmount: 0, changePercent: 0.0, date: '2025-03-13T14:20:00'}
+            {productId: 3784, productName: 'Натуральная массажная свеча Bougie Massage Candle 35 мл', vendorCode: 'id-27426-1366', oldPrice: 732, newPrice: 1065, changeAmount: 333, changePercent: 45.5, date: '2025-03-27T17:00:00Z'},
+            {productId: 3785, productName: 'Массажная свеча с ароматом шоколада Bougie Massage Candle35', vendorCode: 'id-19549-1366', oldPrice: 749, newPrice: 1058, changeAmount: 309, changePercent: 41.3, date: '2025-03-27T17:00:00Z'},
+            {productId: 3786, productName: 'Массажная свеча с ароматом кокоса Bougie Massage Candle 35мл', vendorCode: 'id-19543-1366', oldPrice: 758, newPrice: 1063, changeAmount: 305, changePercent: 40.2, date: '2025-03-27T17:00:00Z'},
+            {productId: 3787, productName: 'Массажная свеча с ароматом мультифрукт Bougie MassageCandle', vendorCode: 'id-18147-1366', oldPrice: 1658, newPrice: 2286, changeAmount: 628, changePercent: 37.9, date: '2025-03-27T17:00:00Z'},
+            {productId: 3788, productName: 'Светящийся в темноте Beyond by Toyfa', vendorCode: 'id-22754-1366', oldPrice: 1841, newPrice: 2530, changeAmount: 689, changePercent: 37.4, date: '2025-03-27T17:00:00Z'},
+            {productId: 3789, productName: 'Автоматический мастурбатор PDX Elite Moto Bator X 5 режимов', vendorCode: 'id-25708-1366', oldPrice: 9009, newPrice: 11667, changeAmount: 2658, changePercent: 29.5, date: '2025-03-27T17:00:00Z'}
         ];
 
-        priceState.totalCount = 5;
+        // Filter the data if needed to match any applied filters
+        if (priceState.filter.minChangeAmount) {
+            priceState.items = priceState.items.filter(item => item.changeAmount >= priceState.filter.minChangeAmount);
+        }
+
+        priceState.totalCount = priceState.items.length;
         priceState.hasMore = false;
 
         updatePriceChangesTable();
         updatePriceLoadMoreButton();
         updatePriceCounters();
 
-        toastr.warning('Загружены демонстрационные данные');
+        toastr.warning('Загружены демонстрационные данные из-за ограничений CORS');
     }
 
     function loadMockStockData() {
         stockState.items = [
-            {productId: 101, productName: 'Футболка спортивная', vendorCode: 'FS-001', warehouseId: 1, warehouseName: 'Центральный', oldAmount: 245, newAmount: 230, changeAmount: -15, changePercent: -6.1, date: '2025-03-15T12:45:00'},
-            {productId: 102, productName: 'Кроссовки беговые', vendorCode: 'KB-103', warehouseId: 2, warehouseName: 'Южный', oldAmount: 62, newAmount: 54, changeAmount: -8, changePercent: -12.9, date: '2025-03-14T10:30:00'},
-            {productId: 103, productName: 'Куртка зимняя', vendorCode: 'KZ-201', warehouseId: 1, warehouseName: 'Центральный', oldAmount: 25, newAmount: 32, changeAmount: 7, changePercent: 28.0, date: '2025-03-15T09:15:00'},
-            {productId: 104, productName: 'Шапка вязаная', vendorCode: 'SV-050', warehouseId: 3, warehouseName: 'Восточный', oldAmount: 106, newAmount: 120, changeAmount: 14, changePercent: 13.2, date: '2025-03-13T14:20:00'}
+            {productId: 101, productName: 'Футболка спортивная', vendorCode: 'FS-001', warehouseId: 575679, warehouseName: 'X-sklad SPB', oldAmount: 245, newAmount: 230, changeAmount: -15, changePercent: -6.1, date: '2025-03-15T12:45:00'},
+            {productId: 102, productName: 'Кроссовки беговые', vendorCode: 'KB-103', warehouseId: 575682, warehouseName: 'X-sklad MSK', oldAmount: 62, newAmount: 54, changeAmount: -8, changePercent: -12.9, date: '2025-03-14T10:30:00'},
+            {productId: 103, productName: 'Куртка зимняя', vendorCode: 'KZ-201', warehouseId: 575679, warehouseName: 'X-sklad SPB', oldAmount: 25, newAmount: 32, changeAmount: 7, changePercent: 28.0, date: '2025-03-15T09:15:00'},
+            {productId: 104, productName: 'Шапка вязаная', vendorCode: 'SV-050', warehouseId: 575682, warehouseName: 'X-sklad MSK', oldAmount: 106, newAmount: 120, changeAmount: 14, changePercent: 13.2, date: '2025-03-13T14:20:00'}
         ];
 
         stockState.totalCount = 4;
@@ -577,17 +651,15 @@ document.addEventListener('DOMContentLoaded', function() {
         updateStockLoadMoreButton();
         updateStockCounters();
 
-        toastr.warning('Загружены демонстрационные данные');
+        toastr.warning('Загружены демонстрационные данные из-за ограничений CORS');
     }
 
     function loadMockWarehouses() {
         warehouseFilter.innerHTML = '<option value="">Все склады</option>';
 
         const mockWarehouses = [
-            {id: 1, name: 'Центральный'},
-            {id: 2, name: 'Южный'},
-            {id: 3, name: 'Восточный'},
-            {id: 4, name: 'Западный'}
+            {id: 575679, name: 'X-sklad SPB'},
+            {id: 575682, name: 'X-sklad MSK'}
         ];
 
         mockWarehouses.forEach(warehouse => {
@@ -596,5 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
             option.textContent = warehouse.name;
             warehouseFilter.appendChild(option);
         });
+
+        toastr.info('Загружены демонстрационные данные по складам');
     }
 });
