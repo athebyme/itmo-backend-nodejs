@@ -128,12 +128,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form event handlers
     priceFilterForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        applyPriceFilters();
+        console.log("Price form submitted!");
+        console.log("Form values:", {
+            minPercent: priceMinChangePercent.value,
+            maxPercent: priceMaxChangePercent.value,
+            minAmount: priceMinChangeAmount.value,
+            since: priceSince.value,
+            onlyIncreases: onlyPriceIncreases.checked,
+            onlyDecreases: onlyPriceDecreases.checked
+        });
+        applyPriceFilters(e);
     });
 
     stockFilterForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        applyStockFilters();
+        console.log("Stock form submitted!");
+        console.log("Form values:", {
+            warehouseId: warehouseFilter.value,
+            minPercent: stockMinChangePercent.value,
+            minAmount: stockMinChangeAmount.value,
+            since: stockSince.value
+        });
+        applyStockFilters(e);
     });
 
     // "Load more" buttons
@@ -304,29 +320,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 requestBody.cursor = stockState.nextCursor;
             }
 
-            // Add filter parameters directly to the root of the request (NOT in a filter object)
-            if (warehouseFilter.value) {
-                requestBody.warehouseId = parseInt(warehouseFilter.value);
-                console.log("Added warehouseId:", requestBody.warehouseId);
+            // DIRECT PARAMETER ADDITION
+            // Add filter parameters directly to the root request
+
+            // The warehouse filter has a dropdown, so check if a valid option is selected
+            if (warehouseFilter.value && warehouseFilter.value !== "") {
+                const warehouseIdValue = parseInt(warehouseFilter.value);
+                requestBody.warehouseId = warehouseIdValue;
+                console.log("Added warehouseId:", warehouseIdValue, "Type:", typeof warehouseIdValue);
             }
 
-            if (stockMinChangePercent.value) {
-                requestBody.minChangePercent = parseFloat(stockMinChangePercent.value);
-                console.log("Added minChangePercent:", requestBody.minChangePercent);
+            // Parse the minimum percentage change if provided
+            if (stockMinChangePercent.value && stockMinChangePercent.value !== "") {
+                const percentValue = parseFloat(stockMinChangePercent.value);
+                requestBody.minChangePercent = percentValue;
+                console.log("Added minChangePercent:", percentValue, "Type:", typeof percentValue);
             }
 
-            if (stockMinChangeAmount.value) {
-                requestBody.minChangeAmount = parseInt(stockMinChangeAmount.value);
-                console.log("Added minChangeAmount:", requestBody.minChangeAmount);
+            // Parse the minimum amount change if provided
+            if (stockMinChangeAmount.value && stockMinChangeAmount.value !== "") {
+                const amountValue = parseInt(stockMinChangeAmount.value);
+                requestBody.minChangeAmount = amountValue;
+                console.log("Added minChangeAmount:", amountValue, "Type:", typeof amountValue);
             }
 
-            if (stockSince.value) {
-                // Format the date to match the API's expected format
+            // Handle the date filter if provided
+            if (stockSince.value && stockSince.value !== "") {
                 requestBody.since = stockSince.value;
-                console.log("Added since:", requestBody.since);
+                console.log("Added since:", requestBody.since, "Type:", typeof requestBody.since);
             }
 
-            console.log("Sending stock changes request:", JSON.stringify(requestBody, null, 2));
+            console.log("FINAL REQUEST:", JSON.stringify(requestBody, null, 2));
 
             const response = await fetch(`${getApiBaseUrl()}/api/stats/stock-changes`, {
                 method: 'POST',
