@@ -162,6 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyPriceFilters() {
         const filter = {};
 
+        // Only add filters if they have values
         if (priceMinChangePercent.value) {
             filter.minChangePercent = parseFloat(priceMinChangePercent.value);
         }
@@ -188,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log("Applying price filters:", filter);
 
+        // Reset state with new filter
         priceState = {
             items: [],
             nextCursor: '',
@@ -196,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
             filter: filter
         };
 
+        // Force reload data with new filter
         loadPriceChanges(true);
     }
 
@@ -203,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyStockFilters() {
         const filter = {};
 
+        // Only add filters that have values
         if (warehouseFilter.value) {
             filter.warehouseId = parseInt(warehouseFilter.value);
         }
@@ -219,6 +223,9 @@ document.addEventListener('DOMContentLoaded', function() {
             filter.since = new Date(stockSince.value).toISOString();
         }
 
+        console.log("Applying stock filters:", filter);
+
+        // Reset state with new filter
         stockState = {
             items: [],
             nextCursor: '',
@@ -227,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
             filter: filter
         };
 
+        // Force reload data with new filter
         loadStockChanges(true);
     }
 
@@ -329,17 +337,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const limit = parseInt(stockLimitSelect.value) || 20;
 
-            // Build request body
+            // Build request body - only include required fields
             const requestBody = {
-                limit: limit,
-                refresh: reset
+                limit: limit
             };
 
+            // Only add refresh if it's true
+            if (reset) {
+                requestBody.refresh = true;
+            }
+
+            // Only add cursor if we have it and we're not resetting
             if (!reset && stockState.nextCursor) {
                 requestBody.cursor = stockState.nextCursor;
             }
 
-            // Add filter parameters
+            // Add filter parameters if they exist
             if (stockState.filter.warehouseId !== undefined) {
                 requestBody.warehouseId = stockState.filter.warehouseId;
             }
@@ -356,6 +369,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 requestBody.since = stockState.filter.since;
             }
 
+            console.log("Sending stock changes request:", JSON.stringify(requestBody));
+
             const response = await fetch(`${getApiBaseUrl()}/api/stats/stock-changes`, {
                 method: 'POST',
                 headers: {
@@ -369,6 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const data = await response.json();
+            console.log("API response:", data);
 
             // Update state
             if (reset) {
@@ -385,6 +401,11 @@ document.addEventListener('DOMContentLoaded', function() {
             updateStockChangesTable();
             updateStockLoadMoreButton();
             updateStockCounters();
+
+            // Show a success message
+            if (reset) {
+                toastr.success('Данные успешно обновлены');
+            }
 
             hideLoading();
         } catch (error) {
@@ -510,19 +531,31 @@ document.addEventListener('DOMContentLoaded', function() {
             const row = document.createElement('tr');
             row.id = rowId;
 
+            // Format the date to match the screenshot format
+            const date = new Date(change.date);
+            const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
+            const percentBadge = change.changePercent > 0
+                ? `<span class="badge bg-success">+${change.changePercent.toFixed(1)}%</span>`
+                : `<span class="badge bg-danger">${change.changePercent.toFixed(1)}%</span>`;
+
             row.innerHTML = `
                 <td>${change.productName}</td>
                 <td>${change.vendorCode}</td>
                 <td>${change.warehouseName}</td>
-                <td>${formatNumber(change.oldAmount)}</td>
-                <td>${formatNumber(change.newAmount)}</td>
-                <td>${formatNumberWithSign(change.changeAmount)}</td>
-                <td>${getChangeBadge(change.changePercent)}</td>
-                <td>${formatDate(change.date)}</td>
+                <td>${change.oldAmount}</td>
+                <td>${change.newAmount}</td>
+                <td>${change.changeAmount > 0 ? '+' + change.changeAmount : change.changeAmount}</td>
+                <td>${percentBadge}</td>
+                <td>${formattedDate}</td>
             `;
 
             tableBody.appendChild(row);
         });
+
+        // Update counters
+        stockShownCount.textContent = stockState.items.length;
+        stockTotalCount.textContent = stockState.totalCount;
     }
 
     // Update load more buttons and counters
@@ -637,14 +670,37 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadMockStockData() {
-        stockState.items = [
+        // Create base mock data
+        const allMockItems = [
             {productId: 101, productName: 'Футболка спортивная', vendorCode: 'FS-001', warehouseId: 575679, warehouseName: 'X-sklad SPB', oldAmount: 245, newAmount: 230, changeAmount: -15, changePercent: -6.1, date: '2025-03-15T12:45:00'},
             {productId: 102, productName: 'Кроссовки беговые', vendorCode: 'KB-103', warehouseId: 575682, warehouseName: 'X-sklad MSK', oldAmount: 62, newAmount: 54, changeAmount: -8, changePercent: -12.9, date: '2025-03-14T10:30:00'},
             {productId: 103, productName: 'Куртка зимняя', vendorCode: 'KZ-201', warehouseId: 575679, warehouseName: 'X-sklad SPB', oldAmount: 25, newAmount: 32, changeAmount: 7, changePercent: 28.0, date: '2025-03-15T09:15:00'},
-            {productId: 104, productName: 'Шапка вязаная', vendorCode: 'SV-050', warehouseId: 575682, warehouseName: 'X-sklad MSK', oldAmount: 106, newAmount: 120, changeAmount: 14, changePercent: 13.2, date: '2025-03-13T14:20:00'}
+            {productId: 104, productName: 'Шапка вязаная', vendorCode: 'SV-050', warehouseId: 575682, warehouseName: 'X-sklad MSK', oldAmount: 106, newAmount: 120, changeAmount: 14, changePercent: 13.2, date: '2025-03-13T14:20:00'},
+            {productId: 105, productName: 'Автоматический мастурбатор PDX Elite', vendorCode: 'AM-001', warehouseId: 575679, warehouseName: 'X-sklad SPB', oldAmount: 20, newAmount: 50, changeAmount: 30, changePercent: 150.0, date: '2025-03-27T17:00:00'}
         ];
 
-        stockState.totalCount = 4;
+        // Apply filters to mock data
+        let filteredItems = [...allMockItems];
+
+        if (stockState.filter.warehouseId) {
+            filteredItems = filteredItems.filter(item => item.warehouseId === stockState.filter.warehouseId);
+        }
+
+        if (stockState.filter.minChangePercent) {
+            filteredItems = filteredItems.filter(item => Math.abs(item.changePercent) >= stockState.filter.minChangePercent);
+        }
+
+        if (stockState.filter.minChangeAmount) {
+            filteredItems = filteredItems.filter(item => Math.abs(item.changeAmount) >= stockState.filter.minChangeAmount);
+        }
+
+        if (stockState.filter.since) {
+            const sinceDate = new Date(stockState.filter.since);
+            filteredItems = filteredItems.filter(item => new Date(item.date) >= sinceDate);
+        }
+
+        stockState.items = filteredItems;
+        stockState.totalCount = filteredItems.length;
         stockState.hasMore = false;
 
         updateStockChangesTable();
