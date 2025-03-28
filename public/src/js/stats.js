@@ -160,81 +160,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Apply price filters
     function applyPriceFilters() {
-        const filter = {};
+        console.log("Applying price filters");
 
-        // Only add filters if they have values
-        if (priceMinChangePercent.value) {
-            filter.minChangePercent = parseFloat(priceMinChangePercent.value);
-        }
+        // Store the filter values directly in form-field variables
+        // We'll read from these when building the request
 
-        if (priceMaxChangePercent.value) {
-            filter.maxChangePercent = parseFloat(priceMaxChangePercent.value);
-        }
-
-        if (priceMinChangeAmount.value) {
-            filter.minChangeAmount = parseInt(priceMinChangeAmount.value);
-        }
-
-        if (priceSince.value) {
-            filter.since = new Date(priceSince.value).toISOString();
-        }
-
-        if (onlyPriceIncreases.checked) {
-            filter.onlyIncreases = true;
-        }
-
-        if (onlyPriceDecreases.checked) {
-            filter.onlyDecreases = true;
-        }
-
-        console.log("Applying price filters:", filter);
-
-        // Reset state with new filter
-        priceState = {
-            items: [],
-            nextCursor: '',
-            hasMore: false,
-            totalCount: 0,
-            filter: filter
-        };
-
-        // Force reload data with new filter
+        // Force reload data with new filter - true forces a reset
         loadPriceChanges(true);
     }
 
     // Apply stock filters
     function applyStockFilters() {
-        const filter = {};
+        console.log("Applying stock filters");
 
-        // Only add filters that have values
-        if (warehouseFilter.value) {
-            filter.warehouseId = parseInt(warehouseFilter.value);
-        }
+        // Store the filter values directly in form-field variables
+        // We'll read from these when building the request
 
-        if (stockMinChangePercent.value) {
-            filter.minChangePercent = parseFloat(stockMinChangePercent.value);
-        }
-
-        if (stockMinChangeAmount.value) {
-            filter.minChangeAmount = parseInt(stockMinChangeAmount.value);
-        }
-
-        if (stockSince.value) {
-            filter.since = new Date(stockSince.value).toISOString();
-        }
-
-        console.log("Applying stock filters:", filter);
-
-        // Reset state with new filter
-        stockState = {
-            items: [],
-            nextCursor: '',
-            hasMore: false,
-            totalCount: 0,
-            filter: filter
-        };
-
-        // Force reload data with new filter
+        // Force reload data with new filter - true forces a reset
         loadStockChanges(true);
     }
 
@@ -337,12 +279,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const limit = parseInt(stockLimitSelect.value) || 20;
 
-            // Build request body - only include required fields
+            // Build request body exactly as your Go server expects
             const requestBody = {
                 limit: limit
             };
 
-            // Only add refresh if it's true
+            // Only add refresh if true
             if (reset) {
                 requestBody.refresh = true;
             }
@@ -352,21 +294,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 requestBody.cursor = stockState.nextCursor;
             }
 
-            // Add filter parameters if they exist
-            if (stockState.filter.warehouseId !== undefined) {
-                requestBody.warehouseId = stockState.filter.warehouseId;
+            // Add filter parameters directly to the root of the request (NOT in a filter object)
+            if (warehouseFilter.value) {
+                requestBody.warehouseId = parseInt(warehouseFilter.value);
             }
 
-            if (stockState.filter.minChangePercent !== undefined) {
-                requestBody.minChangePercent = stockState.filter.minChangePercent;
+            if (stockMinChangePercent.value) {
+                requestBody.minChangePercent = parseFloat(stockMinChangePercent.value);
             }
 
-            if (stockState.filter.minChangeAmount !== undefined) {
-                requestBody.minChangeAmount = stockState.filter.minChangeAmount;
+            if (stockMinChangeAmount.value) {
+                requestBody.minChangeAmount = parseInt(stockMinChangeAmount.value);
             }
 
-            if (stockState.filter.since !== undefined) {
-                requestBody.since = stockState.filter.since;
+            if (stockSince.value) {
+                // Format the date to match the API's expected format
+                requestBody.since = stockSince.value;
             }
 
             console.log("Sending stock changes request:", JSON.stringify(requestBody));
@@ -386,8 +329,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             console.log("API response:", data);
 
-            // Update state
+            // Clear previous items if resetting
             if (reset) {
+                // Clear the table first
+                const tableBody = stockChangesTable.querySelector('tbody');
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center">Загрузка данных...</td></tr>';
+
+                // Then update state
                 stockState.items = data.items || [];
             } else {
                 stockState.items = [...stockState.items, ...(data.items || [])];
@@ -404,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Show a success message
             if (reset) {
-                toastr.success('Данные успешно обновлены');
+                toastr.success('Фильтры применены');
             }
 
             hideLoading();
@@ -468,10 +416,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Clear the table before adding new rows (unless we're appending)
         if (tableBody.querySelector('td[colspan="7"]')) {
             tableBody.innerHTML = '';
         }
 
+        // Add each item to the table
         priceState.items.forEach(change => {
             // Skip if this row already exists (check by combination of id and date)
             const rowId = `price-${change.productId}-${new Date(change.date).getTime()}`;
@@ -644,8 +594,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Mock data functions for development/testing
     function loadMockPriceData() {
-        // Create mock data similar to what's in the screenshot
-        priceState.items = [
+        // Create base mock data
+        const allMockItems = [
             {productId: 3784, productName: 'Натуральная массажная свеча Bougie Massage Candle 35 мл', vendorCode: 'id-27426-1366', oldPrice: 732, newPrice: 1065, changeAmount: 333, changePercent: 45.5, date: '2025-03-27T17:00:00Z'},
             {productId: 3785, productName: 'Массажная свеча с ароматом шоколада Bougie Massage Candle35', vendorCode: 'id-19549-1366', oldPrice: 749, newPrice: 1058, changeAmount: 309, changePercent: 41.3, date: '2025-03-27T17:00:00Z'},
             {productId: 3786, productName: 'Массажная свеча с ароматом кокоса Bougie Massage Candle 35мл', vendorCode: 'id-19543-1366', oldPrice: 758, newPrice: 1063, changeAmount: 305, changePercent: 40.2, date: '2025-03-27T17:00:00Z'},
@@ -654,19 +604,56 @@ document.addEventListener('DOMContentLoaded', function() {
             {productId: 3789, productName: 'Автоматический мастурбатор PDX Elite Moto Bator X 5 режимов', vendorCode: 'id-25708-1366', oldPrice: 9009, newPrice: 11667, changeAmount: 2658, changePercent: 29.5, date: '2025-03-27T17:00:00Z'}
         ];
 
-        // Filter the data if needed to match any applied filters
-        if (priceState.filter.minChangeAmount) {
-            priceState.items = priceState.items.filter(item => item.changeAmount >= priceState.filter.minChangeAmount);
+        // Apply filters to mock data
+        let filteredItems = [...allMockItems];
+
+        if (priceMinChangePercent.value) {
+            const minPercent = parseFloat(priceMinChangePercent.value);
+            filteredItems = filteredItems.filter(item => item.changePercent >= minPercent);
         }
 
-        priceState.totalCount = priceState.items.length;
+        if (priceMaxChangePercent.value) {
+            const maxPercent = parseFloat(priceMaxChangePercent.value);
+            filteredItems = filteredItems.filter(item => item.changePercent <= maxPercent);
+        }
+
+        if (priceMinChangeAmount.value) {
+            const minAmount = parseInt(priceMinChangeAmount.value);
+            filteredItems = filteredItems.filter(item => item.changeAmount >= minAmount);
+        }
+
+        if (priceSince.value) {
+            const sinceDate = new Date(priceSince.value);
+            filteredItems = filteredItems.filter(item => new Date(item.date) >= sinceDate);
+        }
+
+        if (onlyPriceIncreases.checked) {
+            filteredItems = filteredItems.filter(item => item.changeAmount > 0);
+        }
+
+        if (onlyPriceDecreases.checked) {
+            filteredItems = filteredItems.filter(item => item.changeAmount < 0);
+        }
+
+        // Clear existing items
+        priceState.items = filteredItems;
+        priceState.totalCount = filteredItems.length;
         priceState.hasMore = false;
 
+        // Clear the table first
+        const tableBody = priceChangesTable.querySelector('tbody');
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">Загрузка данных...</td></tr>';
+
+        // Update UI
         updatePriceChangesTable();
         updatePriceLoadMoreButton();
         updatePriceCounters();
 
         toastr.warning('Загружены демонстрационные данные из-за ограничений CORS');
+
+        if (priceMinChangeAmount.value && priceMinChangeAmount.value >= 2000) {
+            console.log('Applied minChangeAmount filter of ' + priceMinChangeAmount.value);
+        }
     }
 
     function loadMockStockData() {
@@ -682,27 +669,40 @@ document.addEventListener('DOMContentLoaded', function() {
         // Apply filters to mock data
         let filteredItems = [...allMockItems];
 
-        if (stockState.filter.warehouseId) {
-            filteredItems = filteredItems.filter(item => item.warehouseId === stockState.filter.warehouseId);
+        // Apply warehouse filter
+        if (warehouseFilter.value) {
+            const warehouseId = parseInt(warehouseFilter.value);
+            filteredItems = filteredItems.filter(item => item.warehouseId === warehouseId);
         }
 
-        if (stockState.filter.minChangePercent) {
-            filteredItems = filteredItems.filter(item => Math.abs(item.changePercent) >= stockState.filter.minChangePercent);
+        // Apply min change percent filter
+        if (stockMinChangePercent.value) {
+            const minPercent = parseFloat(stockMinChangePercent.value);
+            filteredItems = filteredItems.filter(item => Math.abs(item.changePercent) >= minPercent);
         }
 
-        if (stockState.filter.minChangeAmount) {
-            filteredItems = filteredItems.filter(item => Math.abs(item.changeAmount) >= stockState.filter.minChangeAmount);
+        // Apply min change amount filter
+        if (stockMinChangeAmount.value) {
+            const minAmount = parseInt(stockMinChangeAmount.value);
+            filteredItems = filteredItems.filter(item => Math.abs(item.changeAmount) >= minAmount);
         }
 
-        if (stockState.filter.since) {
-            const sinceDate = new Date(stockState.filter.since);
+        // Apply date filter
+        if (stockSince.value) {
+            const sinceDate = new Date(stockSince.value);
             filteredItems = filteredItems.filter(item => new Date(item.date) >= sinceDate);
         }
 
+        // Clear existing items
         stockState.items = filteredItems;
         stockState.totalCount = filteredItems.length;
         stockState.hasMore = false;
 
+        // Clear the table first
+        const tableBody = stockChangesTable.querySelector('tbody');
+        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">Загрузка данных...</td></tr>';
+
+        // Update UI
         updateStockChangesTable();
         updateStockLoadMoreButton();
         updateStockCounters();
