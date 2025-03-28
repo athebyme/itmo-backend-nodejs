@@ -247,11 +247,22 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
 
         try {
-            // CORS check code remains the same...
+            // First try a CORS check to avoid wasting time with preflight requests if we know they'll fail
+            try {
+                const testRequest = new XMLHttpRequest();
+                testRequest.open('OPTIONS', `${getApiBaseUrl()}/api/stats/price-changes`, false);
+                testRequest.send();
+            } catch (e) {
+                // CORS error detected, use mock data instead
+                console.warn('CORS error detected, using mock price data');
+                loadMockPriceData();
+                hideLoading();
+                return;
+            }
 
             const limit = parseInt(priceLimitSelect.value) || 20;
 
-            // Build request body - DIRECT PARAMETER ADDITION (like in loadStockChanges)
+            // Build request body with the CORRECT STRUCTURE
             const requestBody = {
                 limit: limit,
                 refresh: reset
@@ -262,44 +273,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 requestBody.cursor = priceState.nextCursor;
             }
 
-            // Now add the filter parameters directly to the request body
-            // This is the key change - we're mirroring the approach in loadStockChanges
-            if (priceState.filter) {
-                // Min percentage change
-                if (priceState.filter.minChangePercent !== undefined) {
-                    requestBody.minChangePercent = priceState.filter.minChangePercent;
-                }
-
-                // Max percentage change
-                if (priceState.filter.maxChangePercent !== undefined) {
-                    requestBody.maxChangePercent = priceState.filter.maxChangePercent;
-                }
-
-                // Min amount change
-                if (priceState.filter.minChangeAmount !== undefined) {
-                    requestBody.minChangeAmount = priceState.filter.minChangeAmount;
-                }
-
-                // Date filter
-                if (priceState.filter.since) {
-                    requestBody.since = priceState.filter.since;
-                }
-
-                // Direction filters
-                if (priceState.filter.onlyIncreases) {
-                    requestBody.onlyIncreases = true;
-                }
-
-                if (priceState.filter.onlyDecreases) {
-                    requestBody.onlyDecreases = true;
-                }
+            // Add filter as a NESTED object if it has properties
+            if (Object.keys(priceState.filter).length > 0) {
+                requestBody.filter = { ...priceState.filter }; // Use a shallow copy to ensure we don't modify the original
             }
 
             console.log("Sending price changes request:", requestBody);
-
-            if (!reset && priceState.nextCursor) {
-                requestBody.cursor = priceState.nextCursor;
-            }
 
             const response = await fetch(`${getApiBaseUrl()}/api/stats/price-changes`, {
                 method: 'POST',
