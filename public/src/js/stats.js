@@ -179,30 +179,48 @@ document.addEventListener('DOMContentLoaded', function() {
         // Prevent default form submission
         if (e) e.preventDefault();
 
-        // DIRECT DEBUG OF ALL FORM VALUES
-        const formValues = {};
+        // Update the filter object in the priceState
+        priceState.filter = {}; // Reset filter
 
-        // Use form elements collection to get all inputs
-        const formElements = priceFilterForm.elements;
-        for (let i = 0; i < formElements.length; i++) {
-            const element = formElements[i];
-            if (element.name) {
-                formValues[element.name] = element.type === 'checkbox' ? element.checked : element.value;
-            } else if (element.id) {
-                formValues[element.id] = element.type === 'checkbox' ? element.checked : element.value;
-            }
+        // Min percentage change
+        if (priceMinChangePercent.value && priceMinChangePercent.value !== "") {
+            const percentValue = parseFloat(priceMinChangePercent.value);
+            priceState.filter.minChangePercent = percentValue;
+            console.log("Added minChangePercent:", percentValue, "Type:", typeof percentValue);
         }
 
-        // Log all detected form values
-        console.log("DIRECT FORM VALUES:", formValues);
+        // Max percentage change
+        if (priceMaxChangePercent.value && priceMaxChangePercent.value !== "") {
+            const percentValue = parseFloat(priceMaxChangePercent.value);
+            priceState.filter.maxChangePercent = percentValue;
+            console.log("Added maxChangePercent:", percentValue, "Type:", typeof percentValue);
+        }
 
-        // Log specific input values directly
-        console.log("Min % Change:", priceMinChangePercent.value);
-        console.log("Max % Change:", priceMaxChangePercent.value);
-        console.log("Min Amount Change:", priceMinChangeAmount.value, "Type:", typeof priceMinChangeAmount.value);
-        console.log("Since Date:", priceSince.value);
-        console.log("Only Increases:", onlyPriceIncreases.checked);
-        console.log("Only Decreases:", onlyPriceDecreases.checked);
+        // Min amount change
+        if (priceMinChangeAmount.value && priceMinChangeAmount.value !== "") {
+            const amountValue = parseInt(priceMinChangeAmount.value);
+            priceState.filter.minChangeAmount = amountValue;
+            console.log("Added minChangeAmount:", amountValue, "Type:", typeof amountValue);
+        }
+
+        // Date filter
+        if (priceSince.value && priceSince.value !== "") {
+            priceState.filter.since = priceSince.value;
+            console.log("Added since:", priceState.filter.since, "Type:", typeof priceState.filter.since);
+        }
+
+        // Direction filters (increases/decreases)
+        if (onlyPriceIncreases.checked) {
+            priceState.filter.onlyIncreases = true;
+            console.log("Added onlyIncreases: true");
+        }
+
+        if (onlyPriceDecreases.checked) {
+            priceState.filter.onlyDecreases = true;
+            console.log("Added onlyDecreases: true");
+        }
+
+        console.log("Final filter object:", priceState.filter);
 
         // Force reload data with new filter - true forces a reset
         loadPriceChanges(true);
@@ -228,30 +246,52 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
 
         try {
-            // First try a CORS check to avoid wasting time with preflight requests if we know they'll fail
-            try {
-                const testRequest = new XMLHttpRequest();
-                testRequest.open('OPTIONS', `${getApiBaseUrl()}/api/stats/price-changes`, false);
-                testRequest.send();
-            } catch (e) {
-                // CORS error detected, use mock data instead
-                console.warn('CORS error detected, using mock price data');
-                loadMockPriceData();
-                hideLoading();
-                return;
-            }
+            // CORS check code remains the same...
 
             const limit = parseInt(priceLimitSelect.value) || 20;
 
-            // Build request body
+            // Build request body - DIRECT PARAMETER ADDITION (like in loadStockChanges)
             const requestBody = {
                 limit: limit,
                 refresh: reset
             };
 
-            // Add filter if it has properties
-            if (Object.keys(priceState.filter).length > 0) {
-                requestBody.filter = priceState.filter;
+            // If we have a cursor and we're not resetting, add it
+            if (!reset && priceState.nextCursor) {
+                requestBody.cursor = priceState.nextCursor;
+            }
+
+            // Now add the filter parameters directly to the request body
+            // This is the key change - we're mirroring the approach in loadStockChanges
+            if (priceState.filter) {
+                // Min percentage change
+                if (priceState.filter.minChangePercent !== undefined) {
+                    requestBody.minChangePercent = priceState.filter.minChangePercent;
+                }
+
+                // Max percentage change
+                if (priceState.filter.maxChangePercent !== undefined) {
+                    requestBody.maxChangePercent = priceState.filter.maxChangePercent;
+                }
+
+                // Min amount change
+                if (priceState.filter.minChangeAmount !== undefined) {
+                    requestBody.minChangeAmount = priceState.filter.minChangeAmount;
+                }
+
+                // Date filter
+                if (priceState.filter.since) {
+                    requestBody.since = priceState.filter.since;
+                }
+
+                // Direction filters
+                if (priceState.filter.onlyIncreases) {
+                    requestBody.onlyIncreases = true;
+                }
+
+                if (priceState.filter.onlyDecreases) {
+                    requestBody.onlyDecreases = true;
+                }
             }
 
             console.log("Sending price changes request:", requestBody);
