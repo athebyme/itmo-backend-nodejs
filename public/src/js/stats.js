@@ -179,10 +179,27 @@ document.addEventListener('DOMContentLoaded', function() {
         // Prevent default form submission
         if (e) e.preventDefault();
 
-        console.log("Applying price filters with values:");
+        // DIRECT DEBUG OF ALL FORM VALUES
+        const formValues = {};
+
+        // Use form elements collection to get all inputs
+        const formElements = priceFilterForm.elements;
+        for (let i = 0; i < formElements.length; i++) {
+            const element = formElements[i];
+            if (element.name) {
+                formValues[element.name] = element.type === 'checkbox' ? element.checked : element.value;
+            } else if (element.id) {
+                formValues[element.id] = element.type === 'checkbox' ? element.checked : element.value;
+            }
+        }
+
+        // Log all detected form values
+        console.log("DIRECT FORM VALUES:", formValues);
+
+        // Log specific input values directly
         console.log("Min % Change:", priceMinChangePercent.value);
         console.log("Max % Change:", priceMaxChangePercent.value);
-        console.log("Min Amount Change:", priceMinChangeAmount.value);
+        console.log("Min Amount Change:", priceMinChangeAmount.value, "Type:", typeof priceMinChangeAmount.value);
         console.log("Since Date:", priceSince.value);
         console.log("Only Increases:", onlyPriceIncreases.checked);
         console.log("Only Decreases:", onlyPriceDecreases.checked);
