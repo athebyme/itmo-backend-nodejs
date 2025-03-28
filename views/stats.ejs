@@ -1,9 +1,9 @@
 <div class="layout">
     <main class="main">
-        <!-- Seller Selection and Controls -->
+        <!-- Header Section -->
         <section class="section mb-4">
             <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
-                <h2 class="section__title mb-0">Статистика продаж</h2>
+                <h2 class="section__title mb-0">Статистика изменений</h2>
 
                 <div class="d-flex gap-2 align-items-center">
                     <div class="form-group mb-0">
@@ -34,169 +34,17 @@
             </div>
         </section>
 
-        <!-- Overview Stats Section -->
-        <section class="section mb-4">
-            <h3 class="section__title">Общая статистика</h3>
-
-            <div class="row g-4" id="overview-stats">
-                <!-- Total Products Card -->
-                <div class="col-md-6 col-lg-3">
-                    <div class="card border-0 h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="text-muted mb-2">Товары</h6>
-                                    <h3 class="mb-0" id="totalProducts">-</h3>
-                                </div>
-                                <div class="p-2 rounded-circle" style="background-color: rgba(93, 95, 239, 0.1);">
-                                    <i class="bi bi-box text-primary" style="font-size: 1.5rem;"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Total Stock Card -->
-                <div class="col-md-6 col-lg-3">
-                    <div class="card border-0 h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="text-muted mb-2">Общий остаток</h6>
-                                    <h3 class="mb-0" id="totalStock">-</h3>
-                                </div>
-                                <div class="p-2 rounded-circle" style="background-color: rgba(20, 184, 166, 0.1);">
-                                    <i class="bi bi-box-seam text-secondary" style="font-size: 1.5rem;"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Average Price Card -->
-                <div class="col-md-6 col-lg-3">
-                    <div class="card border-0 h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="text-muted mb-2">Средняя цена</h6>
-                                    <h3 class="mb-0" id="avgPrice">-</h3>
-                                </div>
-                                <div class="p-2 rounded-circle" style="background-color: rgba(245, 158, 11, 0.1);">
-                                    <i class="bi bi-tag text-warning" style="font-size: 1.5rem;"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Low Stock Items Card -->
-                <div class="col-md-6 col-lg-3">
-                    <div class="card border-0 h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="text-muted mb-2">Товары с низким остатком</h6>
-                                    <h3 class="mb-0" id="lowStockItems">-</h3>
-                                </div>
-                                <div class="p-2 rounded-circle" style="background-color: rgba(239, 68, 68, 0.1);">
-                                    <i class="bi bi-exclamation-circle text-danger" style="font-size: 1.5rem;"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Price & Stock Charts Section -->
-        <section class="section mb-4">
-            <div class="row g-4">
-                <!-- Price Changes Chart -->
-                <div class="col-lg-6">
-                    <div class="card border-0 h-100">
-                        <div class="card-header bg-white border-0">
-                            <h5 class="card-title">Динамика цен</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="chart-container" style="position: relative; height: 300px;">
-                                <canvas id="priceChangesChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stock Changes Chart -->
-                <div class="col-lg-6">
-                    <div class="card border-0 h-100">
-                        <div class="card-header bg-white border-0">
-                            <h5 class="card-title">Динамика остатков</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="chart-container" style="position: relative; height: 300px;">
-                                <canvas id="stockChangesChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Top Products Section -->
-        <section class="section mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="section__title mb-0">Топ товаров</h3>
-
-                <div class="d-flex gap-2">
-                    <select id="topProductsLimit" class="form-select form-select-sm" style="width: auto;">
-                        <option value="5">5 товаров</option>
-                        <option value="10" selected>10 товаров</option>
-                        <option value="20">20 товаров</option>
-                    </select>
-                    <select id="topProductsSort" class="form-select form-select-sm" style="width: auto;">
-                        <option value="priceChange">По изменению цены</option>
-                        <option value="stockChange">По изменению остатков</option>
-                        <option value="price">По цене</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="card border-0 shadow-sm">
-                <div class="table-responsive">
-                    <table class="table mb-0" id="topProductsTable">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Название</th>
-                            <th>Артикул</th>
-                            <th>Цена</th>
-                            <th>Изм. цены</th>
-                            <th>Остаток</th>
-                            <th>Изм. остатков</th>
-                            <th>Обновлен</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td colspan="8" class="text-center">Загрузка данных...</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- Recent Changes Section -->
+        <!-- Tabbed Navigation -->
         <section class="section mb-4">
             <ul class="nav nav-tabs mb-3" id="changesTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="price-changes-tab" data-bs-toggle="tab" data-bs-target="#price-changes" type="button" role="tab" aria-controls="price-changes" aria-selected="true">
-                        Изменения цен
+                        <i class="bi bi-tag me-2"></i>Изменения цен
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="stock-changes-tab" data-bs-toggle="tab" data-bs-target="#stock-changes" type="button" role="tab" aria-controls="stock-changes" aria-selected="false">
-                        Изменения остатков
+                        <i class="bi bi-box-seam me-2"></i>Изменения остатков
                     </button>
                 </li>
             </ul>
@@ -204,13 +52,53 @@
             <div class="tab-content" id="changesTabContent">
                 <!-- Price Changes Tab -->
                 <div class="tab-pane fade show active" id="price-changes" role="tabpanel" aria-labelledby="price-changes-tab">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5>Недавние изменения цен</h5>
-                        <select id="priceChangesLimit" class="form-select form-select-sm" style="width: auto;">
-                            <option value="10">10 записей</option>
-                            <option value="20" selected>20 записей</option>
-                            <option value="50">50 записей</option>
-                        </select>
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white p-3">
+                            <h5 class="card-title mb-0">Фильтры</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="priceFilterForm" class="row g-3">
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="priceMinChangePercent" class="form-label">Мин. изменение (%)</label>
+                                    <input type="number" class="form-control" id="priceMinChangePercent" step="0.1" min="0">
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="priceMaxChangePercent" class="form-label">Макс. изменение (%)</label>
+                                    <input type="number" class="form-control" id="priceMaxChangePercent" step="0.1" min="0">
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="priceMinChangeAmount" class="form-label">Мин. изменение (₽)</label>
+                                    <input type="number" class="form-control" id="priceMinChangeAmount" min="0">
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="priceSince" class="form-label">Начиная с даты</label>
+                                    <input type="date" class="form-control" id="priceSince">
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end mb-3">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="onlyPriceIncreases">
+                                        <label class="form-check-label" for="onlyPriceIncreases">Только повышения</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="onlyPriceDecreases">
+                                        <label class="form-check-label" for="onlyPriceDecreases">Только понижения</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <select id="priceLimitSelect" class="form-select">
+                                        <option value="10">10 записей</option>
+                                        <option value="20" selected>20 записей</option>
+                                        <option value="50">50 записей</option>
+                                        <option value="100">100 записей</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-filter me-2"></i>Применить фильтры
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
                     <div class="card border-0 shadow-sm">
@@ -234,22 +122,61 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div class="card-footer bg-white py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="me-2">Показано: <span id="priceShownCount">0</span> из <span id="priceTotalCount">0</span></span>
+                                </div>
+                                <div>
+                                    <button id="priceLoadMore" class="btn btn-sm btn-outline-primary" disabled>
+                                        Загрузить еще <i class="bi bi-chevron-down ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Stock Changes Tab -->
                 <div class="tab-pane fade" id="stock-changes" role="tabpanel" aria-labelledby="stock-changes-tab">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5>Недавние изменения остатков</h5>
-                        <div class="d-flex gap-2">
-                            <select id="warehouseFilter" class="form-select form-select-sm" style="width: auto;">
-                                <option value="">Все склады</option>
-                            </select>
-                            <select id="stockChangesLimit" class="form-select form-select-sm" style="width: auto;">
-                                <option value="10">10 записей</option>
-                                <option value="20" selected>20 записей</option>
-                                <option value="50">50 записей</option>
-                            </select>
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white p-3">
+                            <h5 class="card-title mb-0">Фильтры</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="stockFilterForm" class="row g-3">
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="warehouseFilter" class="form-label">Склад</label>
+                                    <select id="warehouseFilter" class="form-select">
+                                        <option value="">Все склады</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="stockMinChangePercent" class="form-label">Мин. изменение (%)</label>
+                                    <input type="number" class="form-control" id="stockMinChangePercent" step="0.1" min="0">
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="stockMinChangeAmount" class="form-label">Мин. изменение (шт)</label>
+                                    <input type="number" class="form-control" id="stockMinChangeAmount" min="0">
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="stockSince" class="form-label">Начиная с даты</label>
+                                    <input type="date" class="form-control" id="stockSince">
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <select id="stockLimitSelect" class="form-select">
+                                        <option value="10">10 записей</option>
+                                        <option value="20" selected>20 записей</option>
+                                        <option value="50">50 записей</option>
+                                        <option value="100">100 записей</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8 d-flex align-items-end justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-filter me-2"></i>Применить фильтры
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
 
@@ -274,6 +201,18 @@
                                 </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="card-footer bg-white py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="me-2">Показано: <span id="stockShownCount">0</span> из <span id="stockTotalCount">0</span></span>
+                                </div>
+                                <div>
+                                    <button id="stockLoadMore" class="btn btn-sm btn-outline-primary" disabled>
+                                        Загрузить еще <i class="bi bi-chevron-down ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
