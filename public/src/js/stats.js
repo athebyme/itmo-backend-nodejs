@@ -115,12 +115,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     priceFilterForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        applyPriceFilters();
+        console.log("Price form submitted!");
+        console.log("Form values:", {
+            minPercent: priceMinChangePercent.value,
+            maxPercent: priceMaxChangePercent.value,
+            minAmount: priceMinChangeAmount.value,
+            since: priceSince.value,
+            onlyIncreases: onlyPriceIncreases.checked,
+            onlyDecreases: onlyPriceDecreases.checked
+        });
+        applyPriceFilters(e);
     });
 
     stockFilterForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        applyStockFilters();
+        console.log("Stock form submitted!");
+        console.log("Form values:", {
+            warehouseId: warehouseFilter.value,
+            minPercent: stockMinChangePercent.value,
+            minAmount: stockMinChangeAmount.value,
+            since: stockSince.value
+        });
+        applyStockFilters(e);
     });
 
     priceLoadMore.addEventListener('click', function() {
@@ -143,72 +159,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    function applyPriceFilters() {
-        const filter = {};
+    function applyPriceFilters(e) {
+        if (e) e.preventDefault();
 
-        if (priceMinChangePercent.value) {
-            filter.minChangePercent = parseFloat(priceMinChangePercent.value);
+        // сбрасываем фильтр перед применением новых параметров
+        priceState.filter = {};
+
+        // минимальный процент изменения
+        if (priceMinChangePercent.value && priceMinChangePercent.value !== "") {
+            const percentValue = parseFloat(priceMinChangePercent.value);
+            priceState.filter.minChangePercent = percentValue;
+            console.log("Added minChangePercent:", percentValue, "Type:", typeof percentValue);
         }
 
-        if (priceMaxChangePercent.value) {
-            filter.maxChangePercent = parseFloat(priceMaxChangePercent.value);
+        // максимальный процент изменения
+        if (priceMaxChangePercent.value && priceMaxChangePercent.value !== "") {
+            const percentValue = parseFloat(priceMaxChangePercent.value);
+            priceState.filter.maxChangePercent = percentValue;
+            console.log("Added maxChangePercent:", percentValue, "Type:", typeof percentValue);
         }
 
-        if (priceMinChangeAmount.value) {
-            filter.minChangeAmount = parseInt(priceMinChangeAmount.value);
+        // минимальная величина изменения
+        if (priceMinChangeAmount.value && priceMinChangeAmount.value !== "") {
+            const amountValue = parseInt(priceMinChangeAmount.value);
+            priceState.filter.minChangeAmount = amountValue;
+            console.log("Added minChangeAmount:", amountValue, "Type:", typeof amountValue);
         }
 
-        if (priceSince.value) {
-            filter.since = new Date(priceSince.value).toISOString();
+        // фильтр по дате
+        if (priceSince.value && priceSince.value !== "") {
+            priceState.filter.since = priceSince.value;
+            console.log("Added since:", priceState.filter.since, "Type:", typeof priceState.filter.since);
         }
 
+        // фильтры направления (повышения/понижения)
         if (onlyPriceIncreases.checked) {
-            filter.onlyIncreases = true;
+            priceState.filter.onlyIncreases = true;
+            console.log("Added onlyIncreases: true");
         }
 
         if (onlyPriceDecreases.checked) {
-            filter.onlyDecreases = true;
+            priceState.filter.onlyDecreases = true;
+            console.log("Added onlyDecreases: true");
         }
 
-        console.log("Applying price filters:", filter);
+        console.log("Final filter object:", priceState.filter);
 
-        priceState = {
-            items: [],
-            nextCursor: '',
-            hasMore: false,
-            totalCount: 0,
-            filter: filter
-        };
-
+        // принудительная перезагрузка данных с новым фильтром
         loadPriceChanges(true);
     }
 
-    function applyStockFilters() {
-        const filter = {};
+    function applyStockFilters(e) {
+        if (e) e.preventDefault();
 
-        if (warehouseFilter.value) {
-            filter.warehouseId = parseInt(warehouseFilter.value);
-        }
-
-        if (stockMinChangePercent.value) {
-            filter.minChangePercent = parseFloat(stockMinChangePercent.value);
-        }
-
-        if (stockMinChangeAmount.value) {
-            filter.minChangeAmount = parseInt(stockMinChangeAmount.value);
-        }
-
-        if (stockSince.value) {
-            filter.since = new Date(stockSince.value).toISOString();
-        }
-
-        stockState = {
-            items: [],
-            nextCursor: '',
-            hasMore: false,
-            totalCount: 0,
-            filter: filter
-        };
+        console.log("Applying stock filters with values:");
+        console.log("Warehouse:", warehouseFilter.value);
+        console.log("Min % Change:", stockMinChangePercent.value);
+        console.log("Min Amount Change:", stockMinChangeAmount.value);
+        console.log("Since Date:", stockSince.value);
 
         loadStockChanges(true);
     }
@@ -217,6 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
 
         try {
+            // проверка CORS чтобы избежать лишних preflight запросов
             try {
                 const testRequest = new XMLHttpRequest();
                 testRequest.open('OPTIONS', `${getApiBaseUrl()}/api/stats/price-changes`, false);
@@ -230,20 +239,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const limit = parseInt(priceLimitSelect.value) || 20;
 
+            // формируем тело запроса с правильной структурой
             const requestBody = {
                 limit: limit,
                 refresh: reset
             };
 
-            if (Object.keys(priceState.filter).length > 0) {
-                requestBody.filter = priceState.filter;
-            }
-
-            console.log("Sending price changes request:", requestBody);
-
+            // добавляем cursor если загружаем еще данные
             if (!reset && priceState.nextCursor) {
                 requestBody.cursor = priceState.nextCursor;
             }
+
+            // добавляем фильтр как вложенный объект если он не пустой
+            if (Object.keys(priceState.filter).length > 0) {
+                requestBody.filter = { ...priceState.filter };
+            }
+
+            console.log("Sending price changes request:", requestBody);
 
             const response = await fetch(`${getApiBaseUrl()}/api/stats/price-changes`, {
                 method: 'POST',
@@ -260,6 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             console.log("API response:", data);
 
+            // обновляем состояние
             if (reset) {
                 priceState.items = data.items || [];
             } else {
@@ -270,6 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
             priceState.hasMore = data.hasMore || false;
             priceState.totalCount = data.totalCount || 0;
 
+            // обновляем интерфейс
             updatePriceChangesTable();
             updatePriceLoadMoreButton();
             updatePriceCounters();
@@ -288,6 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
 
         try {
+            // проверка CORS чтобы избежать лишних preflight запросов
             try {
                 const testRequest = new XMLHttpRequest();
                 testRequest.open('OPTIONS', `${getApiBaseUrl()}/api/stats/stock-changes`, false);
@@ -301,30 +316,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const limit = parseInt(stockLimitSelect.value) || 20;
 
+            // формируем тело запроса как ожидает сервер
             const requestBody = {
-                limit: limit,
-                refresh: reset
+                limit: limit
             };
 
+            // добавляем refresh только если true
+            if (reset) {
+                requestBody.refresh = true;
+            }
+
+            // добавляем cursor если загружаем еще данные
             if (!reset && stockState.nextCursor) {
                 requestBody.cursor = stockState.nextCursor;
             }
 
-            if (stockState.filter.warehouseId !== undefined) {
-                requestBody.warehouseId = stockState.filter.warehouseId;
+            // добавляем параметры фильтра напрямую в корень запроса
+
+            // фильтр по складу
+            if (warehouseFilter.value && warehouseFilter.value !== "") {
+                const warehouseIdValue = parseInt(warehouseFilter.value);
+                requestBody.warehouseId = warehouseIdValue;
+                console.log("Added warehouseId:", warehouseIdValue, "Type:", typeof warehouseIdValue);
             }
 
-            if (stockState.filter.minChangePercent !== undefined) {
-                requestBody.minChangePercent = stockState.filter.minChangePercent;
+            // минимальный процент изменения
+            if (stockMinChangePercent.value && stockMinChangePercent.value !== "") {
+                const percentValue = parseFloat(stockMinChangePercent.value);
+                requestBody.minChangePercent = percentValue;
+                console.log("Added minChangePercent:", percentValue, "Type:", typeof percentValue);
             }
 
-            if (stockState.filter.minChangeAmount !== undefined) {
-                requestBody.minChangeAmount = stockState.filter.minChangeAmount;
+            // минимальное количество изменения
+            if (stockMinChangeAmount.value && stockMinChangeAmount.value !== "") {
+                const amountValue = parseInt(stockMinChangeAmount.value);
+                requestBody.minChangeAmount = amountValue;
+                console.log("Added minChangeAmount:", amountValue, "Type:", typeof amountValue);
             }
 
-            if (stockState.filter.since !== undefined) {
-                requestBody.since = stockState.filter.since;
+            // фильтр по дате
+            if (stockSince.value && stockSince.value !== "") {
+                requestBody.since = stockSince.value;
+                console.log("Added since:", requestBody.since, "Type:", typeof requestBody.since);
             }
+
+            console.log("FINAL REQUEST:", JSON.stringify(requestBody, null, 2));
 
             const response = await fetch(`${getApiBaseUrl()}/api/stats/stock-changes`, {
                 method: 'POST',
@@ -339,8 +375,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const data = await response.json();
+            console.log("API response:", data);
 
             if (reset) {
+                // очищаем таблицу
+                const tableBody = stockChangesTable.querySelector('tbody');
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center">Загрузка данных...</td></tr>';
+
+                // обновляем состояние
                 stockState.items = data.items || [];
             } else {
                 stockState.items = [...stockState.items, ...(data.items || [])];
@@ -350,9 +392,14 @@ document.addEventListener('DOMContentLoaded', function() {
             stockState.hasMore = data.hasMore || false;
             stockState.totalCount = data.totalCount || 0;
 
+            // обновляем интерфейс
             updateStockChangesTable();
             updateStockLoadMoreButton();
             updateStockCounters();
+
+            if (reset) {
+                toastr.success('Фильтры применены');
+            }
 
             hideLoading();
         } catch (error) {
@@ -366,6 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadWarehouses() {
         try {
+            // проверка CORS
             const testRequest = new XMLHttpRequest();
             testRequest.open('GET', `${getApiBaseUrl()}/api/stats/warehouses`, false);
             try {
@@ -384,6 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const warehouses = await response.json();
 
+            // обновляем выпадающий список складов
             warehouseFilter.innerHTML = '<option value="">Все склады</option>';
 
             warehouses.forEach(warehouse => {
@@ -401,24 +450,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function updatePriceChangesTable() {
         const tableBody = priceChangesTable.querySelector('tbody');
 
+        // полностью очищаем таблицу перед обновлением
+        tableBody.innerHTML = '';
+
         if (priceState.items.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="7" class="text-center">Нет данных</td></tr>';
             return;
         }
 
-        if (tableBody.querySelector('td[colspan="7"]')) {
-            tableBody.innerHTML = '';
-        }
-
+        // добавляем каждый элемент в таблицу
         priceState.items.forEach(change => {
-            const rowId = `price-${change.productId}-${new Date(change.date).getTime()}`;
-            if (tableBody.querySelector(`#${rowId}`)) {
-                return;
-            }
-
             const row = document.createElement('tr');
-            row.id = rowId;
 
+            // форматируем дату в нужный формат
             const date = new Date(change.date);
             const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 
@@ -439,6 +483,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tableBody.appendChild(row);
         });
 
+        // обновляем счетчики
         priceShownCount.textContent = priceState.items.length;
         priceTotalCount.textContent = priceState.totalCount;
     }
@@ -456,6 +501,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         stockState.items.forEach(change => {
+            // пропускаем если эта строка уже существует
             const rowId = `stock-${change.productId}-${change.warehouseId}-${new Date(change.date).getTime()}`;
             if (tableBody.querySelector(`#${rowId}`)) {
                 return;
@@ -464,19 +510,31 @@ document.addEventListener('DOMContentLoaded', function() {
             const row = document.createElement('tr');
             row.id = rowId;
 
+            // форматируем дату в нужный формат
+            const date = new Date(change.date);
+            const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
+            const percentBadge = change.changePercent > 0
+                ? `<span class="badge bg-success">+${change.changePercent.toFixed(1)}%</span>`
+                : `<span class="badge bg-danger">${change.changePercent.toFixed(1)}%</span>`;
+
             row.innerHTML = `
                 <td>${change.productName}</td>
                 <td>${change.vendorCode}</td>
                 <td>${change.warehouseName}</td>
-                <td>${formatNumber(change.oldAmount)}</td>
-                <td>${formatNumber(change.newAmount)}</td>
-                <td>${formatNumberWithSign(change.changeAmount)}</td>
-                <td>${getChangeBadge(change.changePercent)}</td>
-                <td>${formatDate(change.date)}</td>
+                <td>${change.oldAmount}</td>
+                <td>${change.newAmount}</td>
+                <td>${change.changeAmount > 0 ? '+' + change.changeAmount : change.changeAmount}</td>
+                <td>${percentBadge}</td>
+                <td>${formattedDate}</td>
             `;
 
             tableBody.appendChild(row);
         });
+
+        // обновляем счетчики
+        stockShownCount.textContent = stockState.items.length;
+        stockTotalCount.textContent = stockState.totalCount;
     }
 
     function updatePriceLoadMoreButton() {
@@ -554,7 +612,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadMockPriceData() {
-        priceState.items = [
+        // демо-данные для цен
+        const allMockItems = [
             {productId: 3784, productName: 'Натуральная массажная свеча Bougie Massage Candle 35 мл', vendorCode: 'id-27426-1366', oldPrice: 732, newPrice: 1065, changeAmount: 333, changePercent: 45.5, date: '2025-03-27T17:00:00Z'},
             {productId: 3785, productName: 'Массажная свеча с ароматом шоколада Bougie Massage Candle35', vendorCode: 'id-19549-1366', oldPrice: 749, newPrice: 1058, changeAmount: 309, changePercent: 41.3, date: '2025-03-27T17:00:00Z'},
             {productId: 3786, productName: 'Массажная свеча с ароматом кокоса Bougie Massage Candle 35мл', vendorCode: 'id-19543-1366', oldPrice: 758, newPrice: 1063, changeAmount: 305, changePercent: 40.2, date: '2025-03-27T17:00:00Z'},
@@ -563,30 +622,94 @@ document.addEventListener('DOMContentLoaded', function() {
             {productId: 3789, productName: 'Автоматический мастурбатор PDX Elite Moto Bator X 5 режимов', vendorCode: 'id-25708-1366', oldPrice: 9009, newPrice: 11667, changeAmount: 2658, changePercent: 29.5, date: '2025-03-27T17:00:00Z'}
         ];
 
-        if (priceState.filter.minChangeAmount) {
-            priceState.items = priceState.items.filter(item => item.changeAmount >= priceState.filter.minChangeAmount);
+        // применяем фильтры к демо-данным
+        let filteredItems = [...allMockItems];
+
+        if (priceMinChangePercent.value) {
+            const minPercent = parseFloat(priceMinChangePercent.value);
+            filteredItems = filteredItems.filter(item => item.changePercent >= minPercent);
         }
 
-        priceState.totalCount = priceState.items.length;
+        if (priceMaxChangePercent.value) {
+            const maxPercent = parseFloat(priceMaxChangePercent.value);
+            filteredItems = filteredItems.filter(item => item.changePercent <= maxPercent);
+        }
+
+        if (priceMinChangeAmount.value) {
+            const minAmount = parseInt(priceMinChangeAmount.value);
+            filteredItems = filteredItems.filter(item => item.changeAmount >= minAmount);
+        }
+
+        if (priceSince.value) {
+            const sinceDate = new Date(priceSince.value);
+            filteredItems = filteredItems.filter(item => new Date(item.date) >= sinceDate);
+        }
+
+        if (onlyPriceIncreases.checked) {
+            filteredItems = filteredItems.filter(item => item.changeAmount > 0);
+        }
+
+        if (onlyPriceDecreases.checked) {
+            filteredItems = filteredItems.filter(item => item.changeAmount < 0);
+        }
+
+        priceState.items = filteredItems;
+        priceState.totalCount = filteredItems.length;
         priceState.hasMore = false;
+
+        const tableBody = priceChangesTable.querySelector('tbody');
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">Загрузка данных...</td></tr>';
 
         updatePriceChangesTable();
         updatePriceLoadMoreButton();
         updatePriceCounters();
 
         toastr.warning('Загружены демонстрационные данные из-за ограничений CORS');
+
+        if (priceMinChangeAmount.value && priceMinChangeAmount.value >= 2000) {
+            console.log('Applied minChangeAmount filter of ' + priceMinChangeAmount.value);
+        }
     }
 
     function loadMockStockData() {
-        stockState.items = [
+        // демо-данные для остатков
+        const allMockItems = [
             {productId: 101, productName: 'Футболка спортивная', vendorCode: 'FS-001', warehouseId: 575679, warehouseName: 'X-sklad SPB', oldAmount: 245, newAmount: 230, changeAmount: -15, changePercent: -6.1, date: '2025-03-15T12:45:00'},
             {productId: 102, productName: 'Кроссовки беговые', vendorCode: 'KB-103', warehouseId: 575682, warehouseName: 'X-sklad MSK', oldAmount: 62, newAmount: 54, changeAmount: -8, changePercent: -12.9, date: '2025-03-14T10:30:00'},
             {productId: 103, productName: 'Куртка зимняя', vendorCode: 'KZ-201', warehouseId: 575679, warehouseName: 'X-sklad SPB', oldAmount: 25, newAmount: 32, changeAmount: 7, changePercent: 28.0, date: '2025-03-15T09:15:00'},
-            {productId: 104, productName: 'Шапка вязаная', vendorCode: 'SV-050', warehouseId: 575682, warehouseName: 'X-sklad MSK', oldAmount: 106, newAmount: 120, changeAmount: 14, changePercent: 13.2, date: '2025-03-13T14:20:00'}
+            {productId: 104, productName: 'Шапка вязаная', vendorCode: 'SV-050', warehouseId: 575682, warehouseName: 'X-sklad MSK', oldAmount: 106, newAmount: 120, changeAmount: 14, changePercent: 13.2, date: '2025-03-13T14:20:00'},
+            {productId: 105, productName: 'Автоматический мастурбатор PDX Elite', vendorCode: 'AM-001', warehouseId: 575679, warehouseName: 'X-sklad SPB', oldAmount: 20, newAmount: 50, changeAmount: 30, changePercent: 150.0, date: '2025-03-27T17:00:00'}
         ];
 
-        stockState.totalCount = 4;
+        // применяем фильтры к демо-данным
+        let filteredItems = [...allMockItems];
+
+        if (warehouseFilter.value) {
+            const warehouseId = parseInt(warehouseFilter.value);
+            filteredItems = filteredItems.filter(item => item.warehouseId === warehouseId);
+        }
+
+        if (stockMinChangePercent.value) {
+            const minPercent = parseFloat(stockMinChangePercent.value);
+            filteredItems = filteredItems.filter(item => Math.abs(item.changePercent) >= minPercent);
+        }
+
+        if (stockMinChangeAmount.value) {
+            const minAmount = parseInt(stockMinChangeAmount.value);
+            filteredItems = filteredItems.filter(item => Math.abs(item.changeAmount) >= minAmount);
+        }
+
+        if (stockSince.value) {
+            const sinceDate = new Date(stockSince.value);
+            filteredItems = filteredItems.filter(item => new Date(item.date) >= sinceDate);
+        }
+
+        stockState.items = filteredItems;
+        stockState.totalCount = filteredItems.length;
         stockState.hasMore = false;
+
+        const tableBody = stockChangesTable.querySelector('tbody');
+        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">Загрузка данных...</td></tr>';
 
         updateStockChangesTable();
         updateStockLoadMoreButton();
