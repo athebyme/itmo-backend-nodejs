@@ -1,0 +1,173 @@
+/* SSE indicator styles */
+.sse-indicator {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-left: 10px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.sse-connecting {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
+.sse-connected {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.sse-error {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+.sse-light {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-left: 8px;
+}
+
+.sse-connecting .sse-light {
+    background-color: #6c757d;
+    animation: pulse 1.5s infinite;
+}
+
+.sse-connected .sse-light {
+    background-color: #0f5132;
+}
+
+.sse-error .sse-light {
+    background-color: #842029;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.3;
+    }
+}
+
+.sse-connected-message {
+    color: #0f5132;
+    padding: 10px;
+    font-style: italic;
+    background-color: #d1e7dd;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.highlight-new {
+    animation: highlightNew 5s ease-out;
+}
+
+@keyframes highlightNew {
+    0% {
+        background-color: rgba(25, 135, 84, 0.2);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+/* Debug panel styles */
+#sse-debug-panel {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 400px;
+    height: 300px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    z-index: 9999;
+    font-family: monospace;
+    font-size: 12px;
+    overflow-y: auto;
+    padding-bottom: 10px;
+    border-top-left-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.debug-header {
+    position: sticky;
+    top: 0;
+    background: #333;
+    padding: 5px;
+    border-bottom: 1px solid #666;
+    display: flex;
+    justify-content: space-between;
+    z-index: 1;
+}
+
+.debug-header button {
+    background: #555;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.debug-header button:hover {
+    background: #777;
+}
+
+.debug-entry {
+    padding: 5px;
+    border-bottom: 1px solid #444;
+}
+
+.debug-time {
+    color: #8bc34a;
+    margin-bottom: 2px;
+}
+
+.debug-message {
+    color: #03a9f4;
+    margin-bottom: 2px;
+}
+
+.debug-data {
+    color: #ff9800;
+    word-break: break-all;
+    white-space: pre-wrap;
+    max-height: 100px;
+    overflow-y: auto;
+    font-size: 11px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 5px;
+    border-radius: 2px;
+    margin-top: 2px;
+}
+
+/* Debug toggle button */
+.debug-toggle-btn {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    z-index: 9998;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 12px;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.debug-toggle-btn:hover {
+    opacity: 1;
+}

@@ -1,40 +1,135 @@
-import { Injectable } from '@nestjs/common';
-import { Observable, interval, map } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import {
+    OverviewStats,
+    PaginatedPriceChanges,
+    PaginatedStockChanges,
+    PaginationQuery,
+    PriceChangeFilter,
+    PriceHistoryItem,
+    ProductStats,
+    StockChangeFilter,
+    StockHistoryItem,
+    Warehouse
+} from '/stats.types';
 
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class StatsService {
-    // Simulate mock data that would change over time
-    private mockPriceChanges = [
-        {productId: 3784, productName: 'Натуральная массажная свеча Bougie Massage Candle 35 мл', vendorCode: 'id-27426-1366', oldPrice: 732, newPrice: 1065, changeAmount: 333, changePercent: 45.5, date: '2025-03-27T17:00:00Z'},
-        {productId: 3785, productName: 'Массажная свеча с ароматом шоколада Bougie Massage Candle35', vendorCode: 'id-19549-1366', oldPrice: 749, newPrice: 1058, changeAmount: 309, changePercent: 41.3, date: '2025-03-27T17:00:00Z'},
-        {productId: 3786, productName: 'Массажная свеча с ароматом кокоса Bougie Massage Candle 35мл', vendorCode: 'id-19543-1366', oldPrice: 758, newPrice: 1063, changeAmount: 305, changePercent: 40.2, date: '2025-03-27T17:00:00Z'}
-    ];
+    private readonly apiUrl = '/api/stats';
 
-    getPriceChangesStream(seller: string): Observable<MessageEvent> {
-        return interval(5000).pipe(
-            map((_) => {
-                // In a real application, you would fetch real data changes here
-                // For the demo, we'll just randomly modify one of the price changes
-                const index = Math.floor(Math.random() * this.mockPriceChanges.length);
-                const change = { ...this.mockPriceChanges[index] };
+    constructor(private http: HttpClient) {}
 
-                // Randomly increase or decrease the price
-                const priceChange = Math.floor(Math.random() * 50) - 25;
-                change.newPrice = Math.max(100, change.newPrice + priceChange);
-                change.changeAmount = change.newPrice - change.oldPrice;
-                change.changePercent = (change.changeAmount / change.oldPrice) * 100;
-                change.date = new Date().toISOString();
+    /**
+     * Получение общей статистики
+     */
+    getOverviewStats(refresh: boolean = false): Observable<OverviewStats> {
+        let params = new HttpParams();
+        if (refresh) {
+            params = params.set('refresh', 'true');
+        }
 
-                // Update our mock data
-                this.mockPriceChanges[index] = change;
+        return this.http.get<OverviewStats>(`${this.apiUrl}/overview`, { params });
+    }
 
-                return {
-                    data: {
-                        seller,
-                        priceChange: change
-                    }
-                } as MessageEvent;
-            })
+    /**
+     * Получение списка топовых продуктов
+     */
+    getTopProducts(limit: number = 10, refresh: boolean = false): Observable<ProductStats[]> {
+        let params = new HttpParams()
+            .set('limit', limit.toString());
+
+        if (refresh) {
+            params = params.set('refresh', 'true');
+        }
+
+        return this.http.get<ProductStats[]>(`${this.apiUrl}/products`, { params });
+    }
+
+    /**
+     * Получение списка складов
+     */
+    getWarehouses(): Observable<Warehouse[]> {
+        return this.http.get<Warehouse[]>(`${this.apiUrl}/warehouses`);
+    }
+
+    /**
+     * Получение изменений цен с пагинацией и фильтрацией
+     */
+    getPriceChanges(
+        query: PaginationQuery,
+        filter: PriceChangeFilter = {}
+    ): Observable<PaginatedPriceChanges> {
+        return this.http.post<PaginatedPriceChanges>(`${this.apiUrl}/price-changes`, {
+            limit: query.limit,
+            cursor: query.cursor,
+            refresh: query.refresh,
+            filter
+        });
+    }
+
+    /**
+     * Получение изменений остатков с пагинацией и фильтрацией
+     */
+    getStockChanges(
+        query: PaginationQuery,
+        filter: StockChangeFilter = {}
+    ): Observable<PaginatedStockChanges> {
+        return this.http.post<PaginatedStockChanges>(`${this.apiUrl}/stock-changes`, {
+            limit: query.limit,
+            cursor: query.cursor,
+            refresh: query.refresh,
+            warehouseId: filter.warehouseId,
+            minChangePercent: filter.minChangePercent,
+            minChangeAmount: filter.minChangeAmount,
+            since: filter.since
+        });
+    }
+
+    /**
+     * Получение истории цен для товара
+     */
+    getPriceHistory(productId: number, days: number = 30): Observable<PriceHistoryItem[]> {
+        let params = new HttpParams()
+            .set('days', days.toString());
+
+        return this.http.get<PriceHistoryItem[]>(`${this.apiUrl}/price-history/${productId}`, { params });
+    }
+
+    /**
+     * Получение истории остатков для товара на складе
+     */
+    getStockHistory(productId: number, warehouseId: number, days: number = 30): Observable<StockHistoryItem[]> {
+        let params = new HttpParams()
+            .set('days', days.toString());
+
+        return this.http.get<StockHistoryItem[]>(
+            `${this.apiUrl}/stock-history/${productId}/${warehouseId}`,
+            { params }
         );
+    }
+
+    /**
+     * Обновить кэш статистики
+     */
+    refreshCache(): Observable<{success: boolean, message: string}> {
+        return this.http.post<{success: boolean, message: string}>(`${this.apiUrl}/refresh-cache`, {});
+    }
+
+    /**
+     * Отправить тестовое событие SSE
+     * (используется только для отладки)
+     */
+    sendTestEvent(type: 'price-change' | 'stock-change'): Observable<{success: boolean}> {
+        const params = new HttpParams().set('type', type);
+
+        return this.http.get<{success: boolean}>('/api/sse/test', {
+            params,
+            headers: {
+                'X-API-Key': 'test-api-key'
+            }
+        });
     }
 }

@@ -110,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.onclick = window.toggleSSEDebug;
         document.body.appendChild(btn);
     }
+
     // Create SSE connection status indicator
     createSSEIndicator();
 
@@ -149,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
             statusText.textContent = message;
         }
 
-        console.log(`SSE статус: ${status} - ${message}`);
+        debugSSE(`SSE статус: ${status} - ${message}`);
     }
 
     // Initialize SSE connections for price and stock changes
@@ -173,6 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initPriceChangeEvents() {
         try {
             console.log('Подключение к SSE для обновлений цен...');
+            debugSSE('Подключение к SSE для обновлений цен');
             updateSSEStatus('connecting', 'Подключение...');
 
             // Add timestamp to prevent caching
@@ -191,6 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Handle connected event
             eventSource.addEventListener('connected', function(event) {
                 console.log('SSE соединение установлено:', event.data);
+                debugSSE('Получено событие connected', event.data);
             });
 
             // Handle price-change events
@@ -201,7 +204,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const priceChange = JSON.parse(event.data);
                     showPriceChangeNotification(priceChange);
 
-                    if (document.getElementById('price-changes-tab')?.classList.contains('active')) {
+                    if (document.getElementById('price-changes-tab')?.classList.contains('active') ||
+                        !document.getElementById('price-changes-tab')) {
                         addNewPriceChangeToTable(priceChange);
                     }
                 } catch (error) {
@@ -218,12 +222,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const data = JSON.parse(event.data);
 
                     // Determine event type from data
-                    if (data.hasOwnProperty('oldPrice') && data.hasOwnProperty('newPrice')) {
+                    if (data && data.hasOwnProperty('oldPrice') && data.hasOwnProperty('newPrice')) {
                         // This looks like a price change
-                        debugSSE('Определено как обновление цены', data);
+                        debugSSE('Стандартное сообщение определено как обновление цены', data);
                         showPriceChangeNotification(data);
 
-                        if (document.getElementById('price-changes-tab')?.classList.contains('active')) {
+                        if (document.getElementById('price-changes-tab')?.classList.contains('active') ||
+                            !document.getElementById('price-changes-tab')) {
                             addNewPriceChangeToTable(data);
                         }
                     }
@@ -250,6 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } catch (error) {
             console.error('Ошибка при создании SSE подключения для цен:', error);
+            debugSSE('Ошибка при создании SSE подключения для цен', error.message);
             updateSSEStatus('error', 'Ошибка подключения');
         }
     }
@@ -258,6 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initStockChangeEvents() {
         try {
             console.log('Подключение к SSE для обновлений остатков...');
+            debugSSE('Подключение к SSE для обновлений остатков');
 
             // Add timestamp to prevent caching
             const timestamp = new Date().getTime();
@@ -265,6 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             stockEventSource.onopen = function() {
                 console.log('SSE соединение для остатков открыто');
+                debugSSE('SSE соединение для остатков открыто');
                 toastr.success('Соединение для обновлений остатков установлено', 'Режим реального времени');
             };
 
@@ -272,14 +280,17 @@ document.addEventListener('DOMContentLoaded', function() {
             stockEventSource.addEventListener('stock-change', function(event) {
                 try {
                     console.log('Получено SSE сообщение об остатках:', event.data);
+                    debugSSE('Получено событие stock-change', event.data);
                     const stockChange = JSON.parse(event.data);
                     showStockChangeNotification(stockChange);
 
-                    if (document.getElementById('stock-changes-tab')?.classList.contains('active')) {
+                    if (document.getElementById('stock-changes-tab')?.classList.contains('active') ||
+                        (document.getElementById('stockChangesTable') && !document.getElementById('stock-changes-tab'))) {
                         addNewStockChangeToTable(stockChange);
                     }
                 } catch (error) {
                     console.error('Ошибка обработки SSE события остатков:', error);
+                    debugSSE('Ошибка обработки события stock-change', error.message);
                 }
             });
 
@@ -287,24 +298,28 @@ document.addEventListener('DOMContentLoaded', function() {
             stockEventSource.onmessage = function(event) {
                 try {
                     console.log('Получено обычное SSE сообщение для остатков:', event.data);
+                    debugSSE('Получено стандартное сообщение для остатков (onmessage)', event.data);
                     const data = JSON.parse(event.data);
 
-                    // Determine event type from data
-                    if (data.hasOwnProperty('oldAmount') && data.hasOwnProperty('newAmount') && data.hasOwnProperty('warehouseId')) {
-                        // This looks like a stock change
+                    // Determine if this is a stock change
+                    if (data && data.hasOwnProperty('oldAmount') && data.hasOwnProperty('newAmount') && data.hasOwnProperty('warehouseId')) {
+                        debugSSE('Стандартное сообщение определено как обновление остатков', data);
                         showStockChangeNotification(data);
 
-                        if (document.getElementById('stock-changes-tab')?.classList.contains('active')) {
+                        if (document.getElementById('stock-changes-tab')?.classList.contains('active') ||
+                            (document.getElementById('stockChangesTable') && !document.getElementById('stock-changes-tab'))) {
                             addNewStockChangeToTable(data);
                         }
                     }
                 } catch (error) {
                     console.error('Ошибка обработки SSE сообщения для остатков:', error);
+                    debugSSE('Ошибка обработки стандартного сообщения для остатков', error.message);
                 }
             };
 
             stockEventSource.onerror = function(error) {
                 console.error('SSE ошибка для остатков:', error);
+                debugSSE('Ошибка SSE соединения для остатков', error);
 
                 setTimeout(() => {
                     stockEventSource.close();
@@ -318,6 +333,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } catch (error) {
             console.error('Ошибка при создании SSE подключения для остатков:', error);
+            debugSSE('Ошибка при создании SSE подключения для остатков', error.message);
         }
     }
 
