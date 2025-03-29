@@ -11,7 +11,6 @@ import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
-    SseModule,
     AuthModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'crazybob',
