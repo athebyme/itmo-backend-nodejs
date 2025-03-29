@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { StatsController } from '/stats.controller';
-import { StatsService } from '/stats.service';
-import { SSEService } from '/sse.service';
-import { NotificationService } from '/notification.service';
+import { StatsController } from './stats.controller';
+import { StatsService } from './stats.service';
+import { SseService } from './sse.service';
+import { NotificationService } from './notification.service';
 
 @Module({
     imports: [
@@ -15,12 +15,12 @@ import { NotificationService } from '/notification.service';
     controllers: [StatsController],
     providers: [
         StatsService,
-        SSEService,
+        SseService,
         NotificationService
     ],
     exports: [
         StatsService,
-        SSEService
+        SseService
     ]
 })
 export class StatsModule {}

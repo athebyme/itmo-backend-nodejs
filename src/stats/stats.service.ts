@@ -1,135 +1,121 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { Observable, of } from 'rxjs';
 import {
     OverviewStats,
     PaginatedPriceChanges,
     PaginatedStockChanges,
     PaginationQuery,
     PriceChangeFilter,
-    PriceHistoryItem,
-    ProductStats,
     StockChangeFilter,
-    StockHistoryItem,
     Warehouse
-} from '/stats.types';
+} from './stats.types';
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable()
 export class StatsService {
     private readonly apiUrl = '/api/stats';
 
-    constructor(private http: HttpClient) {}
+    constructor(private httpService: HttpService) {}
 
     /**
-     * Получение общей статистики
+     * Mock method for getting overview stats
      */
     getOverviewStats(refresh: boolean = false): Observable<OverviewStats> {
-        let params = new HttpParams();
-        if (refresh) {
-            params = params.set('refresh', 'true');
-        }
+        // Mock implementation
+        const mockData: OverviewStats = {
+            totalProducts: 100,
+            totalWarehouses: 5,
+            avgPrice: 1500,
+            totalStock: 2500,
+            avgStock: 25,
+            lastUpdated: new Date().toISOString(),
+            mostExpensiveItem: 'Premium Product',
+            cheapestItem: 'Budget Product',
+            lowStockItems: 10,
+            lowStockThreshold: 5
+        };
 
-        return this.http.get<OverviewStats>(`${this.apiUrl}/overview`, { params });
+        return of(mockData);
     }
 
     /**
-     * Получение списка топовых продуктов
-     */
-    getTopProducts(limit: number = 10, refresh: boolean = false): Observable<ProductStats[]> {
-        let params = new HttpParams()
-            .set('limit', limit.toString());
-
-        if (refresh) {
-            params = params.set('refresh', 'true');
-        }
-
-        return this.http.get<ProductStats[]>(`${this.apiUrl}/products`, { params });
-    }
-
-    /**
-     * Получение списка складов
-     */
-    getWarehouses(): Observable<Warehouse[]> {
-        return this.http.get<Warehouse[]>(`${this.apiUrl}/warehouses`);
-    }
-
-    /**
-     * Получение изменений цен с пагинацией и фильтрацией
+     * Mock method for getting price changes
      */
     getPriceChanges(
         query: PaginationQuery,
         filter: PriceChangeFilter = {}
     ): Observable<PaginatedPriceChanges> {
-        return this.http.post<PaginatedPriceChanges>(`${this.apiUrl}/price-changes`, {
-            limit: query.limit,
-            cursor: query.cursor,
-            refresh: query.refresh,
-            filter
-        });
+        // Mock implementation
+        const mockData: PaginatedPriceChanges = {
+            items: [
+                {
+                    productId: 1,
+                    productName: 'Test Product 1',
+                    vendorCode: 'TP001',
+                    oldPrice: 1000,
+                    newPrice: 1200,
+                    changeAmount: 200,
+                    changePercent: 20,
+                    date: new Date().toISOString()
+                },
+                {
+                    productId: 2,
+                    productName: 'Test Product 2',
+                    vendorCode: 'TP002',
+                    oldPrice: 2000,
+                    newPrice: 1800,
+                    changeAmount: -200,
+                    changePercent: -10,
+                    date: new Date().toISOString()
+                }
+            ],
+            hasMore: false,
+            totalCount: 2
+        };
+
+        return of(mockData);
     }
 
     /**
-     * Получение изменений остатков с пагинацией и фильтрацией
+     * Mock method for getting stock changes
      */
     getStockChanges(
         query: PaginationQuery,
         filter: StockChangeFilter = {}
     ): Observable<PaginatedStockChanges> {
-        return this.http.post<PaginatedStockChanges>(`${this.apiUrl}/stock-changes`, {
-            limit: query.limit,
-            cursor: query.cursor,
-            refresh: query.refresh,
-            warehouseId: filter.warehouseId,
-            minChangePercent: filter.minChangePercent,
-            minChangeAmount: filter.minChangeAmount,
-            since: filter.since
-        });
+        // Mock implementation
+        const mockData: PaginatedStockChanges = {
+            items: [
+                {
+                    productId: 1,
+                    productName: 'Test Product 1',
+                    vendorCode: 'TP001',
+                    warehouseId: 1,
+                    warehouseName: 'Main Warehouse',
+                    oldAmount: 50,
+                    newAmount: 40,
+                    changeAmount: -10,
+                    changePercent: -20,
+                    date: new Date().toISOString()
+                }
+            ],
+            hasMore: false,
+            totalCount: 1
+        };
+
+        return of(mockData);
     }
 
     /**
-     * Получение истории цен для товара
+     * Mock method for getting warehouses
      */
-    getPriceHistory(productId: number, days: number = 30): Observable<PriceHistoryItem[]> {
-        let params = new HttpParams()
-            .set('days', days.toString());
+    getWarehouses(): Observable<Warehouse[]> {
+        // Mock implementation
+        const mockData: Warehouse[] = [
+            { id: 1, name: 'Main Warehouse' },
+            { id: 2, name: 'Secondary Warehouse' }
+        ];
 
-        return this.http.get<PriceHistoryItem[]>(`${this.apiUrl}/price-history/${productId}`, { params });
-    }
-
-    /**
-     * Получение истории остатков для товара на складе
-     */
-    getStockHistory(productId: number, warehouseId: number, days: number = 30): Observable<StockHistoryItem[]> {
-        let params = new HttpParams()
-            .set('days', days.toString());
-
-        return this.http.get<StockHistoryItem[]>(
-            `${this.apiUrl}/stock-history/${productId}/${warehouseId}`,
-            { params }
-        );
-    }
-
-    /**
-     * Обновить кэш статистики
-     */
-    refreshCache(): Observable<{success: boolean, message: string}> {
-        return this.http.post<{success: boolean, message: string}>(`${this.apiUrl}/refresh-cache`, {});
-    }
-
-    /**
-     * Отправить тестовое событие SSE
-     * (используется только для отладки)
-     */
-    sendTestEvent(type: 'price-change' | 'stock-change'): Observable<{success: boolean}> {
-        const params = new HttpParams().set('type', type);
-
-        return this.http.get<{success: boolean}>('/api/sse/test', {
-            params,
-            headers: {
-                'X-API-Key': 'test-api-key'
-            }
-        });
+        return of(mockData);
     }
 }

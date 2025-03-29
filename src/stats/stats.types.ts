@@ -1,4 +1,3 @@
-
 // Типы изменений цен
 export interface PriceChange {
     productId: number;
@@ -9,6 +8,7 @@ export interface PriceChange {
     changeAmount: number;
     changePercent: number;
     date: string;
+    isNew?: boolean; // Added to resolve the error
 }
 
 // Типы изменений остатков

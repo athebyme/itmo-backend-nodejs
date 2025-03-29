@@ -2,6 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+interface CustomMessageEvent {
+    data: string;
+    type: string;
+    id: string;
+}
+
 @Injectable()
 export class SseService {
     private priceEvents = new Subject<any>();
@@ -15,23 +21,23 @@ export class SseService {
         this.stockEvents.next(stockChange);
     }
 
-    subscribeToPriceChanges(): Observable<MessageEvent> {
+    subscribeToPriceChanges(): Observable<CustomMessageEvent> {
         return this.priceEvents.pipe(
             map((event) => ({
                 data: JSON.stringify(event),
                 type: 'price-change',
                 id: String(new Date().getTime()),
-            } as MessageEvent))
+            }))
         );
     }
 
-    subscribeToStockChanges(): Observable<MessageEvent> {
+    subscribeToStockChanges(): Observable<CustomMessageEvent> {
         return this.stockEvents.pipe(
             map((event) => ({
                 data: JSON.stringify(event),
                 type: 'stock-change',
                 id: String(new Date().getTime()),
-            } as MessageEvent))
+            }))
         );
     }
 }
