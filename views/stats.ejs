@@ -1,118 +1,224 @@
-<!-- Stats Page with SSE Status Indicator -->
-<div class="container">
-    <div class="page-header">
-        <h1>
-            Статистика изменений
-            <span class="sse-status sse-status-connecting">Подключение...</span>
-        </h1>
-    </div>
+<div class="layout">
+    <main class="main">
+        <!-- Header Section -->
+        <section class="section mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+                <h2 class="section__title mb-0">Статистика изменений</h2>
 
-    <!-- Tabs for different types of changes -->
-    <ul class="nav nav-tabs mb-4" id="statsTabs" role="tablist">
-        <li class="nav-item">
-            <a class="nav-link active" id="price-tab" data-toggle="tab" href="#price-changes" role="tab">
-                Изменения цен
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="stock-tab" data-toggle="tab" href="#stock-changes" role="tab">
-                Изменения остатков
-            </a>
-        </li>
-    </ul>
+                <div class="d-flex gap-2 align-items-center">
+                    <div class="form-group mb-0">
+                        <select id="sellerSelect" class="form-select">
+                            <option value="bananzza" <%= seller === 'bananzza' ? 'selected' : '' %>>Bananzza</option>
+                            <option value="lasciva" <%= seller === 'lasciva' ? 'selected' : '' %>>Lasciva</option>
+                        </select>
+                    </div>
+                    <button id="refreshBtn" class="btn btn-primary d-flex align-items-center">
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Обновить
+                    </button>
+                </div>
+            </div>
 
-    <!-- Tab content -->
-    <div class="tab-content" id="statsTabContent">
-        <!-- Price changes tab -->
-        <div class="tab-pane fade show active" id="price-changes" role="tabpanel">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Недавние изменения цен</h5>
+            <div id="apiStatus" class="alert alert-info d-none mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <span>Загрузка данных с сервера...</span>
+                </div>
+            </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-striped" id="price-changes-table">
-                            <thead>
-                            <tr>
-                                <th>Товар</th>
-                                <th>Дата изменения</th>
-                                <th>Артикул</th>
-                                <th>Старая цена</th>
-                                <th>Новая цена</th>
-                                <th>Изменение</th>
-                                <th>Изменение %</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <% priceChanges.forEach(function(change) { %>
+            <div id="apiError" class="alert alert-danger d-none mb-4">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span id="errorMessage">Ошибка при загрузке данных.</span>
+            </div>
+        </section>
+
+        <!-- Tabbed Navigation -->
+        <section class="section mb-4">
+            <ul class="nav nav-tabs mb-3" id="changesTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="price-changes-tab" data-bs-toggle="tab" data-bs-target="#price-changes" type="button" role="tab" aria-controls="price-changes" aria-selected="true">
+                        <i class="bi bi-tag me-2"></i>Изменения цен
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="stock-changes-tab" data-bs-toggle="tab" data-bs-target="#stock-changes" type="button" role="tab" aria-controls="stock-changes" aria-selected="false">
+                        <i class="bi bi-box-seam me-2"></i>Изменения остатков
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="changesTabContent">
+                <!-- Price Changes Tab -->
+                <div class="tab-pane fade show active" id="price-changes" role="tabpanel" aria-labelledby="price-changes-tab">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white p-3">
+                            <h5 class="card-title mb-0">Фильтры</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="priceFilterForm" class="row g-3">
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="priceMinChangePercent" class="form-label">Мин. изменение (%)</label>
+                                    <input type="number" class="form-control" id="priceMinChangePercent" step="0.1" min="0">
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="priceMaxChangePercent" class="form-label">Макс. изменение (%)</label>
+                                    <input type="number" class="form-control" id="priceMaxChangePercent" step="0.1" min="0">
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="priceMinChangeAmount" class="form-label">Мин. изменение (₽)</label>
+                                    <input type="number" class="form-control" id="priceMinChangeAmount" min="0" placeholder="2000">
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="priceSince" class="form-label">Начиная с даты</label>
+                                    <input type="date" class="form-control" id="priceSince" placeholder="дд.мм.гггг">
+                                </div>
+                                <div class="col-md-4 d-flex align-items-center mb-3">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="onlyPriceIncreases">
+                                        <label class="form-check-label" for="onlyPriceIncreases">Только повышения</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="onlyPriceDecreases">
+                                        <label class="form-check-label" for="onlyPriceDecreases">Только понижения</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <select id="priceLimitSelect" class="form-select">
+                                        <option value="10">10 записей</option>
+                                        <option value="20" selected>20 записей</option>
+                                        <option value="50">50 записей</option>
+                                        <option value="100">100 записей</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-filter me-2"></i>Применить фильтры
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="table-responsive">
+                            <table class="table mb-0" id="priceChangesTable">
+                                <thead>
                                 <tr>
-                                    <td><%= change.productName %></td>
-                                    <td><%= new Date(change.date).toLocaleString() %></td>
-                                    <td><%= change.vendorCode %></td>
-                                    <td><%= change.oldPrice.toLocaleString() %> ₽</td>
-                                    <td><%= change.newPrice.toLocaleString() %> ₽</td>
-                                    <td class="<%= change.changeAmount > 0 ? 'price-increase' : 'price-decrease' %>">
-                                        <%= (change.changeAmount > 0 ? '+' : '') + change.changeAmount.toLocaleString() %> ₽
-                                    </td>
-                                    <td class="<%= change.changePercent > 0 ? 'price-increase' : 'price-decrease' %>">
-                                        <%= (change.changePercent > 0 ? '+' : '') + change.changePercent.toFixed(1) %>%
-                                    </td>
+                                    <th>Товар</th>
+                                    <th>Артикул</th>
+                                    <th>Старая цена</th>
+                                    <th>Новая цена</th>
+                                    <th>Изменение</th>
+                                    <th>Процент</th>
+                                    <th>Дата</th>
                                 </tr>
-                            <% }); %>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td colspan="7" class="text-center">Загрузка данных...</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer bg-white py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="me-2">Показано: <span id="priceShownCount">0</span> из <span id="priceTotalCount">0</span></span>
+                                </div>
+                                <div>
+                                    <button id="priceLoadMore" class="btn btn-sm btn-outline-primary" disabled>
+                                        Загрузить еще <i class="bi bi-chevron-down ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Changes Tab -->
+                <div class="tab-pane fade" id="stock-changes" role="tabpanel" aria-labelledby="stock-changes-tab">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white p-3">
+                            <h5 class="card-title mb-0">Фильтры</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="stockFilterForm" class="row g-3">
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="warehouseFilter" class="form-label">Склад</label>
+                                    <select id="warehouseFilter" class="form-select">
+                                        <option value="">Все склады</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="stockMinChangePercent" class="form-label">Мин. изменение (%)</label>
+                                    <input type="number" class="form-control" id="stockMinChangePercent" step="0.1" min="0">
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="stockMinChangeAmount" class="form-label">Мин. изменение (шт)</label>
+                                    <input type="number" class="form-control" id="stockMinChangeAmount" min="0">
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="stockSince" class="form-label">Начиная с даты</label>
+                                    <input type="date" class="form-control" id="stockSince">
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <select id="stockLimitSelect" class="form-select">
+                                        <option value="10">10 записей</option>
+                                        <option value="20" selected>20 записей</option>
+                                        <option value="50">50 записей</option>
+                                        <option value="100">100 записей</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8 d-flex align-items-end justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-filter me-2"></i>Применить фильтры
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="table-responsive">
+                            <table class="table mb-0" id="stockChangesTable">
+                                <thead>
+                                <tr>
+                                    <th>Товар</th>
+                                    <th>Артикул</th>
+                                    <th>Склад</th>
+                                    <th>Старый остаток</th>
+                                    <th>Новый остаток</th>
+                                    <th>Изменение</th>
+                                    <th>Процент</th>
+                                    <th>Дата</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td colspan="8" class="text-center">Загрузка данных...</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer bg-white py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="me-2">Показано: <span id="stockShownCount">0</span> из <span id="stockTotalCount">0</span></span>
+                                </div>
+                                <div>
+                                    <button id="stockLoadMore" class="btn btn-sm btn-outline-primary" disabled>
+                                        Загрузить еще <i class="bi bi-chevron-down ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
+    </main>
 
-        <!-- Stock changes tab -->
-        <div class="tab-pane fade" id="stock-changes" role="tabpanel">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Недавние изменения остатков</h5>
-
-                    <div class="table-responsive">
-                        <table class="table table-striped" id="stock-changes-table">
-                            <thead>
-                            <tr>
-                                <th>Товар</th>
-                                <th>Дата изменения</th>
-                                <th>Артикул</th>
-                                <th>Склад</th>
-                                <th>Старое количество</th>
-                                <th>Новое количество</th>
-                                <th>Изменение</th>
-                                <th>Изменение %</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <% stockChanges.forEach(function(change) { %>
-                                <tr data-warehouse-id="<%= change.warehouseId %>">
-                                    <td><%= change.productName %></td>
-                                    <td><%= new Date(change.date).toLocaleString() %></td>
-                                    <td><%= change.vendorCode %></td>
-                                    <td><%= change.warehouseName %></td>
-                                    <td><%= change.oldAmount.toLocaleString() %></td>
-                                    <td class="<%= change.newAmount === 0 ? 'critical-stock' : '' %>">
-                                        <%= change.newAmount.toLocaleString() %>
-                                    </td>
-                                    <td class="<%= change.changeAmount > 0 ? 'stock-increase' : 'stock-decrease' %>">
-                                        <%= (change.changeAmount > 0 ? '+' : '') + change.changeAmount.toLocaleString() %>
-                                    </td>
-                                    <td class="<%= change.changePercent > 0 ? 'stock-increase' : 'stock-decrease' %>">
-                                        <%= (change.changePercent > 0 ? '+' : '') + change.changePercent.toFixed(1) %>%
-                                    </td>
-                                </tr>
-                            <% }); %>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="alert alert-info mt-4">
-        <p><i class="bi bi-info-circle-fill"></i> Уведомления об изменениях поступают в реальном времени. Вы можете продолжать работу на других страницах, и уведомления будут отображаться.</p>
-    </div>
+    <%- include('./partials/user-session') %>
 </div>
