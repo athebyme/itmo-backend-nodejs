@@ -1,4 +1,3 @@
-/* Enhanced Stats Page Styling */
 .stats-header {
     display: flex;
     justify-content: space-between;
@@ -23,7 +22,6 @@
     text-align: center;
 }
 
-/* Improved Tabs */
 .nav-tabs .nav-link {
     color: var(--dark-light);
     font-weight: 500;
@@ -45,7 +43,6 @@
     border-bottom-color: var(--primary);
 }
 
-/* Tables */
 .table {
     width: 100%;
     margin-bottom: 0;
@@ -71,7 +68,6 @@
     background-color: rgba(93, 95, 239, 0.05);
 }
 
-/* Card Styling */
 .card {
     border-radius: var(--radius);
     overflow: hidden;
@@ -89,7 +85,6 @@
     background-color: white;
 }
 
-/* Form Elements */
 .form-control, .form-select {
     padding: 0.6rem 0.75rem;
     border-radius: var(--radius-sm);
@@ -156,7 +151,6 @@
     border-color: var(--light-gray);
 }
 
-/* Animated Loading Spinner */
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
@@ -165,7 +159,6 @@
     animation: spin 1s linear infinite;
 }
 
-/* Checkbox styling */
 .form-check-input:checked {
     background-color: var(--primary);
     border-color: var(--primary);
@@ -176,7 +169,6 @@
     border-color: var(--primary);
 }
 
-/* Responsive adjustments */
 @media (max-width: 992px) {
     .table th, .table td {
         padding: 10px 12px;
@@ -197,4 +189,69 @@
         white-space: nowrap;
         font-size: 0.9rem;
     }
+}
+
+.sse-indicator {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    margin-left: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.sse-light {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-left: 8px;
+}
+
+.sse-connecting .sse-light {
+    background-color: #f59e0b;
+    animation: pulse 1.5s infinite;
+}
+
+.sse-connected .sse-light {
+    background-color: #10b981;
+}
+
+.sse-error .sse-light {
+    background-color: #ef4444;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.sse-connected-message {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+}
+
+.sse-connected-message:before {
+    content: "•";
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes highlight-row {
+    from { background-color: rgba(93, 95, 239, 0.2); }
+    to { background-color: transparent; }
+}
+
+.highlight-new {
+    animation: highlight-row 2s ease-out;
 }

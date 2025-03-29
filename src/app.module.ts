@@ -5,9 +5,12 @@ import { ConstructorController } from "./constructor/constructor.controller";
 import { ConverterController } from "./converter/converter.controller";
 import { WildberriesController } from "./wildberries/wildberries.controller";
 import { StatsController } from "./stats/stats.controller";
+import { SseModule } from "./stats/sse/sse.module";
 
 @Module({
-  imports: [],
+  imports: [
+    SseModule // Добавляем модуль SSE
+  ],
   controllers: [
     IndexController,
     MainController,
