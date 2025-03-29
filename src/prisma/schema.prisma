@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id               Int         @id @default(autoincrement())
+  name             String
+  description      String?
+  sku              String      @unique
+  barcode          String?     @unique
+  brand            String?
+  model            String?
+  color            String?
+  size             String?
+  weight           Float?
+  dimensions       String?
+  wildberriesItemId String?    @unique
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  // Relationships
+  categoryId       Int
+  category         Category    @relation(fields: [categoryId], references: [id])
+  supplierId       Int
+  supplier         Supplier    @relation(fields: [supplierId], references: [id])
+  prices           Price[]
+  stocks           Stock[]
+  images           Image[]
+  attributes       Attribute[]
+  orderItems       OrderItem[]
+}
+
+model Category {
+  id                   Int       @id @default(autoincrement())
+  name                 String
+  wildberriesCategoryId String?  @unique
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Relationships
+  products             Product[]
+}
+
+model Supplier {
+  id            Int       @id @default(autoincrement())
+  name          String
+  contactPerson String?
+  phone         String?
+  email         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relationships
+  products      Product[]
+}
+
+model Price {
+  id        Int       @id @default(autoincrement())
+  type      String    // 'regular', 'promotional', etc.
+  value     Float
+  startDate DateTime?
+  endDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relationships
+  productId Int
+  product   Product   @relation(fields: [productId], references: [id])
+}
+
+model Stock {
+  id          Int       @id @default(autoincrement())
+  quantity    Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relationships
+  productId   Int
+  product     Product   @relation(fields: [productId], references: [id])
+  warehouseId Int
+  warehouse   WarehouseLocation @relation(fields: [warehouseId], references: [id])
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  url       String
+  isMain    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Attribute {
+  id        Int      @id @default(autoincrement())
+  name      String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model WarehouseLocation {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  stocks    Stock[]
+}
+
+model Order {
+  id                   Int        @id @default(autoincrement())
+  orderIdOnWildberries String?    @unique
+  status               String
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  // Relationships
+  items                OrderItem[]
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  quantity  Int
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  email     String   @unique
+  role      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
