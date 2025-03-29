@@ -60,6 +60,17 @@ document.addEventListener('DOMContentLoaded', function() {
         filter: {}
     };
 
+    const getApiBaseUrl = () => `http://199.83.103.182/${currentSeller}`;
+
+    const useApiOrMock = async (apiCall, mockDataFn) => {
+        try {
+            return await apiCall();
+        } catch (error) {
+            console.warn('API access failed, using mock data:', error);
+            return mockDataFn();
+        }
+    };
+
     loadWarehouses();
     loadPriceChanges(true);
 
@@ -501,12 +512,24 @@ document.addEventListener('DOMContentLoaded', function() {
         toastr.error(message);
     }
 
+    function formatCurrency(value) {
+        return `${value} ₽`;
+    }
+
     function formatNumber(value) {
         return new Intl.NumberFormat('ru-RU').format(value);
     }
 
     function formatNumberWithSign(value) {
         return (value > 0 ? '+' : '') + formatNumber(value);
+    }
+
+    function formatPercentage(value) {
+        return new Intl.NumberFormat('ru-RU', {
+            style: 'percent',
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1
+        }).format(value / 100);
     }
 
     function formatDate(dateString) {
