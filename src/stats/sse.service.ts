@@ -2,6 +2,26 @@ import { Injectable } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+class ServerSentEvent {
+    constructor(
+        public data: string,
+        public type?: string,
+        public id?: string,
+    ) {}
+
+    toString(): string {
+        let result = '';
+        if (this.type) {
+            result += `event: ${this.type}\n`;
+        }
+        if (this.id) {
+            result += `id: ${this.id}\n`;
+        }
+        result += `data: ${this.data}\n\n`;
+        return result;
+    }
+}
+
 @Injectable()
 export class SseService {
     private priceEvents = new Subject<any>();
@@ -15,35 +35,23 @@ export class SseService {
         this.stockEvents.next(stockChange);
     }
 
-    subscribeToPriceChanges(): Observable<MessageEvent> {
+    subscribeToPriceChanges(): Observable<any> {
         return this.priceEvents.pipe(
-            map((event) => {
-                const messageEvent = {
-                    data: JSON.stringify(event),
-                    type: 'price-change',
-                    id: String(new Date().getTime()),
-                    lastEventId: '',
-                    origin: '',
-                } as MessageEvent;
-
-                return messageEvent;
-            })
+            map(event => new ServerSentEvent(
+                JSON.stringify(event),
+                'price-change',
+                String(new Date().getTime())
+            ))
         );
     }
 
-    subscribeToStockChanges(): Observable<MessageEvent> {
+    subscribeToStockChanges(): Observable<any> {
         return this.stockEvents.pipe(
-            map((event) => {
-                const messageEvent = {
-                    data: JSON.stringify(event),
-                    type: 'stock-change',
-                    id: String(new Date().getTime()),
-                    lastEventId: '',
-                    origin: '',
-                } as MessageEvent;
-
-                return messageEvent;
-            })
+            map(event => new ServerSentEvent(
+                JSON.stringify(event),
+                'stock-change',
+                String(new Date().getTime())
+            ))
         );
     }
 }
