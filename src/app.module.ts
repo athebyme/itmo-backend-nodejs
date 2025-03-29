@@ -5,7 +5,6 @@ import { ConstructorController } from "./constructor/constructor.controller";
 import { ConverterController } from "./converter/converter.controller";
 import { WildberriesController } from "./wildberries/wildberries.controller";
 import { StatsController } from "./stats/stats.controller";
-import { SseModule } from "./stats/sse.module";
 import { AuthModule } from './auth/auth.module';
 import { UsersService } from './users/user.service';
 import { JwtModule } from '@nestjs/jwt';
