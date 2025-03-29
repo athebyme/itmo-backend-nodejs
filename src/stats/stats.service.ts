@@ -1,148 +1,39 @@
 import { Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { Observable, catchError, map, of } from 'rxjs';
-import {
-    PaginatedPriceChanges,
-    PaginatedStockChanges,
-    PaginationQuery,
-    PriceChangeFilter,
-    StockChangeFilter
-} from './stats.types';
+import { Observable, interval, map } from 'rxjs';
 
 @Injectable()
 export class StatsService {
-    private readonly apiBaseUrl = 'http://199.83.103.182/api/stats';
+    // Simulate mock data that would change over time
+    private mockPriceChanges = [
+        {productId: 3784, productName: 'Натуральная массажная свеча Bougie Massage Candle 35 мл', vendorCode: 'id-27426-1366', oldPrice: 732, newPrice: 1065, changeAmount: 333, changePercent: 45.5, date: '2025-03-27T17:00:00Z'},
+        {productId: 3785, productName: 'Массажная свеча с ароматом шоколада Bougie Massage Candle35', vendorCode: 'id-19549-1366', oldPrice: 749, newPrice: 1058, changeAmount: 309, changePercent: 41.3, date: '2025-03-27T17:00:00Z'},
+        {productId: 3786, productName: 'Массажная свеча с ароматом кокоса Bougie Massage Candle 35мл', vendorCode: 'id-19543-1366', oldPrice: 758, newPrice: 1063, changeAmount: 305, changePercent: 40.2, date: '2025-03-27T17:00:00Z'}
+    ];
 
-    constructor(private httpService: HttpService) {}
+    getPriceChangesStream(seller: string): Observable<MessageEvent> {
+        return interval(5000).pipe(
+            map((_) => {
+                // In a real application, you would fetch real data changes here
+                // For the demo, we'll just randomly modify one of the price changes
+                const index = Math.floor(Math.random() * this.mockPriceChanges.length);
+                const change = { ...this.mockPriceChanges[index] };
 
-    /**
-     * Get overview statistics
-     */
-    getOverviewStats(refresh: boolean = false): Observable<any> {
-        let url = `${this.apiBaseUrl}/overview`;
-        if (refresh) {
-            url += `?refresh=true`;
-        }
+                // Randomly increase or decrease the price
+                const priceChange = Math.floor(Math.random() * 50) - 25;
+                change.newPrice = Math.max(100, change.newPrice + priceChange);
+                change.changeAmount = change.newPrice - change.oldPrice;
+                change.changePercent = (change.changeAmount / change.oldPrice) * 100;
+                change.date = new Date().toISOString();
 
-        return this.httpService.get(url).pipe(
-            map(response => response.data),
-            catchError(error => {
-                console.error('Error fetching overview stats:', error);
-                return of({ error: 'Failed to fetch overview statistics' });
-            })
-        );
-    }
+                // Update our mock data
+                this.mockPriceChanges[index] = change;
 
-    /**
-     * Get top products
-     */
-    getTopProducts(limit: number = 10, refresh: boolean = false): Observable<any> {
-        let url = `${this.apiBaseUrl}/products?limit=${limit}`;
-        if (refresh) {
-            url += `&refresh=true`;
-        }
-
-        return this.httpService.get(url).pipe(
-            map(response => response.data),
-            catchError(error => {
-                console.error('Error fetching top products:', error);
-                return of([]);
-            })
-        );
-    }
-
-    /**
-     * Get warehouse list
-     */
-    getWarehouses(): Observable<any> {
-        return this.httpService.get(`${this.apiBaseUrl}/warehouses`).pipe(
-            map(response => response.data),
-            catchError(error => {
-                console.error('Error fetching warehouses:', error);
-                return of([]);
-            })
-        );
-    }
-
-    /**
-     * Get price changes with pagination and filtering
-     */
-    getPriceChanges(
-        query: PaginationQuery,
-        filter: PriceChangeFilter = {}
-    ): Observable<PaginatedPriceChanges> {
-        const requestData = {
-            limit: query.limit || 20,
-            cursor: query.cursor,
-            refresh: query.refresh || false,
-            filter: filter
-        };
-
-        return this.httpService.post<PaginatedPriceChanges>(
-            `${this.apiBaseUrl}/price-changes`,
-            requestData
-        ).pipe(
-            map(response => response.data),
-            catchError(error => {
-                console.error('Error fetching price changes:', error);
-                return of({
-                    items: [],
-                    hasMore: false,
-                    totalCount: 0
-                });
-            })
-        );
-    }
-
-    /**
-     * Get stock changes with pagination and filtering
-     */
-    getStockChanges(
-        query: PaginationQuery,
-        filter: StockChangeFilter = {}
-    ): Observable<PaginatedStockChanges> {
-        const requestData = {
-            limit: query.limit || 20,
-            cursor: query.cursor,
-            refresh: query.refresh || false,
-            warehouseId: filter.warehouseId,
-            minChangePercent: filter.minChangePercent,
-            minChangeAmount: filter.minChangeAmount,
-            since: filter.since
-        };
-
-        return this.httpService.post<PaginatedStockChanges>(
-            `${this.apiBaseUrl}/stock-changes`,
-            requestData
-        ).pipe(
-            map(response => response.data),
-            catchError(error => {
-                console.error('Error fetching stock changes:', error);
-                return of({
-                    items: [],
-                    hasMore: false,
-                    totalCount: 0
-                });
-            })
-        );
-    }
-
-    /**
-     * Send a test event (for testing SSE)
-     */
-    sendTestEvent(type: 'price-change' | 'stock-change'): Observable<any> {
-        return this.httpService.get(
-            `http://199.83.103.182/api/sse/test?type=${type}`,
-            {
-                headers: {
-                    'X-API-Key': 'test-api-key'
-                }
-            }
-        ).pipe(
-            map(response => response.data),
-            catchError(error => {
-                console.error('Error sending test event:', error);
-                return of({ success: false });
+                return {
+                    data: {
+                        seller,
+                        priceChange: change
+                    }
+                } as MessageEvent;
             })
         );
     }
