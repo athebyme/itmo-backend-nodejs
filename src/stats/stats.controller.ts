@@ -1,6 +1,7 @@
 import { Controller, Get, Render, Query, Sse } from '@nestjs/common';
 import { Observable, interval, of } from 'rxjs';
-import { map, mergeMap } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
+import { MessageEvent } from '@nestjs/common';
 
 @Controller('stats')
 export class StatsController {
@@ -45,6 +46,12 @@ export class StatsController {
 
     @Sse('price-changes-stream')
     priceChangesStream(): Observable<MessageEvent> {
+        const headers = {
+            'Content-Type': 'text/event-stream',
+            'Connection': 'keep-alive',
+            'Cache-Control': 'no-cache',
+        };
+
         return interval(5000).pipe(
             mergeMap(() => {
                 const baseChange = this.priceChanges[Math.floor(Math.random() * this.priceChanges.length)];
@@ -67,6 +74,8 @@ export class StatsController {
                 console.log('SSE: отправляю новое изменение цены', data);
 
                 return of({
+                    id: String(Date.now()),
+                    type: 'message',
                     data: JSON.stringify(data)
                 } as MessageEvent);
             })

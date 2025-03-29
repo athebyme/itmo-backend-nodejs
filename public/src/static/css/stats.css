@@ -190,18 +190,33 @@
         font-size: 0.9rem;
     }
 }
-
+/* SSE indicator styles */
 .sse-indicator {
     display: flex;
     align-items: center;
-    padding: 6px 12px;
-    border-radius: 20px;
-    margin-left: 1rem;
-    font-size: 0.875rem;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-left: 10px;
+    font-size: 12px;
     font-weight: 500;
-    border: 1px solid #e2e8f0;
-    background-color: #f8fafc;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.sse-connecting {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
+.sse-connected {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.sse-error {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
 }
 
 .sse-light {
@@ -212,46 +227,48 @@
 }
 
 .sse-connecting .sse-light {
-    background-color: #f59e0b;
+    background-color: #6c757d;
     animation: pulse 1.5s infinite;
 }
 
 .sse-connected .sse-light {
-    background-color: #10b981;
+    background-color: #0f5132;
 }
 
 .sse-error .sse-light {
-    background-color: #ef4444;
+    background-color: #842029;
 }
 
 @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.3;
+    }
 }
 
 .sse-connected-message {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    background-color: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+    color: #0f5132;
+    padding: 10px;
+    font-style: italic;
+    background-color: #d1e7dd;
     border-radius: 4px;
-    margin: 0.5rem 0;
-}
-
-.sse-connected-message:before {
-    content: "•";
-    font-size: 1.5rem;
-    margin-right: 0.5rem;
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes highlight-row {
-    from { background-color: rgba(93, 95, 239, 0.2); }
-    to { background-color: transparent; }
+    margin: 10px 0;
 }
 
 .highlight-new {
-    animation: highlight-row 2s ease-out;
+    animation: highlightNew 5s ease-out;
+}
+
+@keyframes highlightNew {
+    0% {
+        background-color: rgba(25, 135, 84, 0.2);
+    }
+    100% {
+        background-color: transparent;
+    }
 }
