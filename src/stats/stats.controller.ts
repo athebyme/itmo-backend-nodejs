@@ -24,6 +24,31 @@ export class StatsController {
         }
     ];
 
+    private readonly stockChanges = [
+        {
+            productName: 'Товар для тестирования остатков 1',
+            vendorCode: 'id-10167-1366',
+            warehouseId: 575679,
+            warehouseName: 'Склад SPB',
+            oldAmount: 100,
+            newAmount: 120,
+            changeAmount: 20,
+            changePercent: 20,
+            date: new Date().toISOString()
+        },
+        {
+            productName: 'Товар для тестирования остатков 2',
+            vendorCode: 'id-19527-1366',
+            warehouseId: 575682,
+            warehouseName: 'Склад MSK',
+            oldAmount: 50,
+            newAmount: 30,
+            changeAmount: -20,
+            changePercent: -40,
+            date: new Date().toISOString()
+        }
+    ];
+
     @Get()
     getStatsPage(@Query('seller') seller: string = 'default', @Res() res: Response) {
         return res.render('stats', {
@@ -42,7 +67,9 @@ export class StatsController {
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
       `,
-            seller: seller
+            seller: seller,
+            priceChanges: this.priceChanges,
+            stockChanges: this.stockChanges
         });
     }
 }

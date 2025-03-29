@@ -1,54 +1,4 @@
-/* SSE Notifications and Highlights CSS */
-
-/* Toast notifications customization */
-.toast-success {
-    background-color: #51a351;
-}
-.toast-error {
-    background-color: #bd362f;
-}
-.toast-info {
-    background-color: #2f96b4;
-}
-.toast-warning {
-    background-color: #f89406;
-}
-
-/* Animation for new rows */
-@keyframes highlightNew {
-    0% { background-color: rgba(76, 175, 80, 0.2); }
-    100% { background-color: transparent; }
-}
-
-@keyframes highlightUpdate {
-    0% { background-color: rgba(33, 150, 243, 0.2); }
-    100% { background-color: transparent; }
-}
-
-/* Table row highlighting */
-.highlight-new {
-    animation: highlightNew 3s ease-out;
-}
-
-.highlight-update {
-    animation: highlightUpdate 3s ease-out;
-}
-
-/* Price and stock change indicators */
-.price-increase, .stock-increase {
-    color: #4caf50;
-    font-weight: bold;
-}
-
-.price-decrease, .stock-decrease {
-    color: #f44336;
-    font-weight: bold;
-}
-
-/* Critical stock level (near zero) */
-.critical-stock {
-    background-color: rgba(244, 67, 54, 0.1);
-}
+/* SSE Notifications CSS */
 
 /* SSE Status Indicator */
 .sse-status {
@@ -74,132 +24,18 @@
     color: #8a6d3b;
 }
 
-/* Notification Badge */
-.notification-badge {
-    position: relative;
-    display: inline-block;
-}
-
-.notification-badge[data-count]:after {
-    content: attr(data-count);
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background-color: #f44336;
-    color: white;
-    border-radius: 50%;
-    padding: 2px 6px;
-    font-size: 10px;
+/* Price and stock change indicators */
+.price-increase, .stock-increase {
+    color: #4caf50;
     font-weight: bold;
 }
 
-/* Real-time Updates Section */
-.realtime-updates {
-    margin-top: 20px;
-    padding: 15px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    background-color: #f9f9f9;
+.price-decrease, .stock-decrease {
+    color: #f44336;
+    font-weight: bold;
 }
 
-.realtime-updates h3 {
-    margin-top: 0;
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 10px;
-}
-
-.update-log {
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid #e0e0e0;
-    padding: 10px;
-    border-radius: 4px;
-    background-color: white;
-    font-family: monospace;
-    font-size: 12px;
-    margin-top: 10px;
-}
-
-.update-log-entry {
-    padding: 5px 0;
-    border-bottom: 1px dashed #e0e0e0;
-}
-
-.update-log-entry:last-child {
-    border-bottom: none;
-}
-
-.update-log-time {
-    color: #777;
-    margin-right: 10px;
-}
-
-.update-log-price {
-    color: #2196F3;
-}
-
-.update-log-stock {
-    color: #FF9800;
-}
-
-/* Toggle Switches for notifications */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-    margin-left: 10px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 24px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background-color: #2196F3;
-}
-
-input:focus + .slider {
-    box-shadow: 0 0 1px #2196F3;
-}
-
-input:checked + .slider:before {
-    transform: translateX(26px);
-}
-
-/* Notification settings panel */
-.notification-settings {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.notification-settings label {
-    margin-right: 15px;
+/* Critical stock level */
+.critical-stock {
+    background-color: rgba(244, 67, 54, 0.1);
 }
