@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Query, Body, Param, Sse, Res } from '@nestjs/common';
 import { Observable, interval, of } from 'rxjs';
-import { map, mergeMap } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 import { Response } from 'express';
 import { StatsService } from '/stats.service';
 import {
@@ -39,21 +39,19 @@ export class StatsController {
     @Get()
     getStatsPage(@Query('seller') seller: string = 'default', @Res() res: Response) {
         return res.render('stats', {
-            layout: 'main_layout',
+            layout: 'layouts/main_layout',
             title: 'Статистика изменений - Панель управления продавца',
             body_scripts: `
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="/src/js/stats.js"></script>
-        <script src="/src/js/stats-sse.js"></script>
-        <script src="/src/js/loadTime.js"></script>
-        <script src="/src/js/menuActive.js"></script>
-      `,
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script src="/src/js/stats.js"></script>
+      <script src="/src/js/stats-sse.js"></script> 
+      <script src="/src/js/loadTime.js"></script>
+      <script src="/src/js/menuActive.js"></script>
+    `,
             head_extra: `
-        <link rel="stylesheet" href="/static/css/stats.css">
-        <link rel="stylesheet" href="/static/css/sse.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-      `,
+      <link rel="stylesheet" href="/static/css/stats.css">
+      <link rel="stylesheet" href="/static/css/sse.css">
+    `,
             seller: seller
         });
     }

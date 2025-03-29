@@ -9,7 +9,7 @@ import { SseModule } from "./stats/sse/sse.module";
 
 @Module({
   imports: [
-    SseModule // Добавляем модуль SSE
+    SseModule
   ],
   controllers: [
     IndexController,
