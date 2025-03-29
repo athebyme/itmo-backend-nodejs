@@ -7,12 +7,12 @@ export class SseController {
     constructor(private readonly sseService: SseService) {}
 
     @Sse('price-changes')
-    priceChanges(): Observable<MessageEvent> {
+    priceChanges(): Observable<any> {
         return this.sseService.subscribeToPriceChanges();
     }
 
     @Sse('stock-changes')
-    stockChanges(): Observable<MessageEvent> {
+    stockChanges(): Observable<any> {
         return this.sseService.subscribeToStockChanges();
     }
 }

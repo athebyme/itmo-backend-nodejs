@@ -4,6 +4,8 @@ import { StatsController } from './stats.controller';
 import { StatsService } from './stats.service';
 import { SseService } from './sse.service';
 import { NotificationService } from './notification.service';
+import { TestEventsService } from './test-events.service';
+import { TestEventsController } from './test-events.controller';
 
 @Module({
     imports: [
@@ -12,15 +14,20 @@ import { NotificationService } from './notification.service';
             maxRedirects: 5,
         }),
     ],
-    controllers: [StatsController],
+    controllers: [
+        StatsController,
+        TestEventsController // Added test controller
+    ],
     providers: [
         StatsService,
         SseService,
-        NotificationService
+        NotificationService,
+        TestEventsService // Added test service
     ],
     exports: [
         StatsService,
-        SseService
+        SseService,
+        NotificationService
     ]
 })
 export class StatsModule {}

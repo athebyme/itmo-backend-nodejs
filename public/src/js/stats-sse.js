@@ -1,495 +1,293 @@
+// SSE client for connecting to server-sent events
 document.addEventListener('DOMContentLoaded', function() {
-    // Debug helper function
-    function debugSSE(message, data) {
-        const debugEnabled = localStorage.getItem('enableSSEDebug') === 'true';
-        if (debugEnabled) {
-            console.log(`%cSSE Debug: ${message}`, 'color: #9c27b0; font-weight: bold;', data || '');
+    // Initialize toastr notification settings
+    toastr.options = {
+        closeButton: true,
+        newestOnTop: true,
+        progressBar: true,
+        positionClass: "toast-top-right",
+        preventDuplicates: false,
+        showDuration: "300",
+        hideDuration: "1000",
+        timeOut: "7000",
+        extendedTimeOut: "1000",
+        showEasing: "swing",
+        hideEasing: "linear",
+        showMethod: "fadeIn",
+        hideMethod: "fadeOut"
+    };
 
-            // Add to debug panel if it exists
-            const debugPanel = document.getElementById('sse-debug-panel');
-            if (debugPanel) {
-                const entry = document.createElement('div');
-                entry.className = 'debug-entry';
-                entry.innerHTML = `
-                    <div class="debug-time">${new Date().toLocaleTimeString()}</div>
-                    <div class="debug-message">${message}</div>
-                    <div class="debug-data">${data ? JSON.stringify(data) : ''}</div>
-                `;
-                debugPanel.appendChild(entry);
+    // Connect to price changes SSE endpoint
+    const priceEventsSource = new EventSource('/api/sse/price-changes');
 
-                // Scroll to bottom
-                debugPanel.scrollTop = debugPanel.scrollHeight;
-
-                // Limit entries
-                if (debugPanel.children.length > 100) {
-                    debugPanel.removeChild(debugPanel.firstChild);
-                }
-            }
-        }
-    }
-
-    // Toggle debug mode
-    window.toggleSSEDebug = function() {
-        const current = localStorage.getItem('enableSSEDebug') === 'true';
-        localStorage.setItem('enableSSEDebug', (!current).toString());
-        alert(`SSE Debug ${!current ? 'включен' : 'выключен'}`);
-        location.reload();
-    }
-
-    // Create debug panel if debug is enabled
-    if (localStorage.getItem('enableSSEDebug') === 'true') {
-        const debugPanel = document.createElement('div');
-        debugPanel.id = 'sse-debug-panel';
-        debugPanel.innerHTML = `
-            <div class="debug-header">
-                SSE Debug <button onclick="toggleSSEDebug()">Выключить</button>
-                <button onclick="document.getElementById('sse-debug-panel').innerHTML = '<div class=\\'debug-header\\'>SSE Debug <button onclick=\\'toggleSSEDebug()\\'>Выключить</button><button onclick=\\'document.getElementById(\\\"sse-debug-panel\\\").innerHTML = \\\"\\\"\\'>Очистить</button></div>'">Очистить</button>
-            </div>
-        `;
-        document.body.appendChild(debugPanel);
-
-        // Add style
-        const style = document.createElement('style');
-        style.textContent = `
-            #sse-debug-panel {
-                position: fixed;
-                bottom: 0;
-                right: 0;
-                width: 400px;
-                height: 300px;
-                background: rgba(0,0,0,0.8);
-                color: #fff;
-                z-index: 9999;
-                font-family: monospace;
-                font-size: 12px;
-                overflow-y: auto;
-                padding-bottom: 10px;
-            }
-            .debug-header {
-                position: sticky;
-                top: 0;
-                background: #333;
-                padding: 5px;
-                border-bottom: 1px solid #666;
-                display: flex;
-                justify-content: space-between;
-            }
-            .debug-entry {
-                padding: 5px;
-                border-bottom: 1px solid #444;
-            }
-            .debug-time {
-                color: #8bc34a;
-                margin-bottom: 2px;
-            }
-            .debug-message {
-                color: #03a9f4;
-                margin-bottom: 2px;
-            }
-            .debug-data {
-                color: #ff9800;
-                word-break: break-all;
-                white-space: pre-wrap;
-            }
-        `;
-        document.head.appendChild(style);
-    } else {
-        // Add debug toggle button
-        const btn = document.createElement('button');
-        btn.textContent = 'Debug SSE';
-        btn.style.position = 'fixed';
-        btn.style.bottom = '10px';
-        btn.style.right = '10px';
-        btn.style.zIndex = '9999';
-        btn.style.opacity = '0.7';
-        btn.style.background = '#333';
-        btn.style.color = '#fff';
-        btn.style.border = 'none';
-        btn.style.borderRadius = '4px';
-        btn.style.padding = '5px 10px';
-        btn.onclick = window.toggleSSEDebug;
-        document.body.appendChild(btn);
-    }
-
-    // Create SSE connection status indicator
-    createSSEIndicator();
-
-    // Start SSE connections
-    setTimeout(() => {
-        initSSEConnections();
-    }, 1000);
-
-    // Create visual indicator for SSE connection status
-    function createSSEIndicator() {
-        const indicator = document.createElement('div');
-        indicator.id = 'sse-indicator';
-        indicator.className = 'sse-indicator sse-connecting';
-        indicator.innerHTML = `
-            <span class="sse-status">Подключение...</span>
-            <div class="sse-light"></div>
-        `;
-
-        const header = document.querySelector('.stats-header') || document.querySelector('.section.mb-4');
-        if (header) {
-            header.appendChild(indicator);
-        } else {
-            document.body.appendChild(indicator);
-        }
-    }
-
-    // Update SSE connection status indicator
-    function updateSSEStatus(status, message) {
-        const indicator = document.getElementById('sse-indicator');
-        if (!indicator) return;
-
-        indicator.classList.remove('sse-connecting', 'sse-connected', 'sse-error');
-        indicator.classList.add(`sse-${status}`);
-
-        const statusText = indicator.querySelector('.sse-status');
-        if (statusText) {
-            statusText.textContent = message;
-        }
-
-        debugSSE(`SSE статус: ${status} - ${message}`);
-    }
-
-    // Initialize SSE connections for price and stock changes
-    function initSSEConnections() {
-        if (typeof EventSource === 'undefined') {
-            console.error('Ваш браузер не поддерживает Server-Sent Events');
-            updateSSEStatus('error', 'SSE не поддерживается браузером');
-            return;
-        }
-
-        // Connect to price changes SSE endpoint
-        initPriceChangeEvents();
-
-        // Connect to stock changes SSE endpoint if on stock page
-        if (document.getElementById('stockChangesTable')) {
-            initStockChangeEvents();
-        }
-    }
-
-    // Connect to price changes SSE
-    function initPriceChangeEvents() {
+    priceEventsSource.addEventListener('price-change', function(event) {
         try {
-            console.log('Подключение к SSE для обновлений цен...');
-            debugSSE('Подключение к SSE для обновлений цен');
-            updateSSEStatus('connecting', 'Подключение...');
+            const data = JSON.parse(event.data);
+            console.log('Price change event received:', data);
 
-            // Add timestamp to prevent caching
-            const timestamp = new Date().getTime();
-            const eventSource = new EventSource(`/api/sse/price-changes?t=${timestamp}`);
+            // Display notification
+            showPriceChangeNotification(data);
 
-            eventSource.onopen = function() {
-                console.log('SSE соединение для цен открыто');
-                debugSSE('SSE соединение для цен открыто');
-                updateSSEStatus('connected', 'Соединение активно');
-
-                toastr.success('Соединение для обновлений цен установлено', 'Режим реального времени');
-                showConnectionMessage('Соединение для обновлений цен в реальном времени установлено');
-            };
-
-            // Handle connected event
-            eventSource.addEventListener('connected', function(event) {
-                console.log('SSE соединение установлено:', event.data);
-                debugSSE('Получено событие connected', event.data);
-            });
-
-            // Handle price-change events
-            eventSource.addEventListener('price-change', function(event) {
-                try {
-                    console.log('Получено SSE сообщение о цене:', event.data);
-                    debugSSE('Получено событие price-change', event.data);
-                    const priceChange = JSON.parse(event.data);
-                    showPriceChangeNotification(priceChange);
-
-                    if (document.getElementById('price-changes-tab')?.classList.contains('active') ||
-                        !document.getElementById('price-changes-tab')) {
-                        addNewPriceChangeToTable(priceChange);
-                    }
-                } catch (error) {
-                    console.error('Ошибка обработки SSE события цены:', error);
-                    debugSSE('Ошибка обработки события price-change', error.message);
-                }
-            });
-
-            // Also handle default message event in case server doesn't specify event type
-            eventSource.onmessage = function(event) {
-                try {
-                    console.log('Получено обычное SSE сообщение:', event.data);
-                    debugSSE('Получено стандартное сообщение (onmessage)', event.data);
-                    const data = JSON.parse(event.data);
-
-                    // Determine event type from data
-                    if (data && data.hasOwnProperty('oldPrice') && data.hasOwnProperty('newPrice')) {
-                        // This looks like a price change
-                        debugSSE('Стандартное сообщение определено как обновление цены', data);
-                        showPriceChangeNotification(data);
-
-                        if (document.getElementById('price-changes-tab')?.classList.contains('active') ||
-                            !document.getElementById('price-changes-tab')) {
-                            addNewPriceChangeToTable(data);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Ошибка обработки SSE сообщения:', error);
-                    debugSSE('Ошибка обработки стандартного сообщения', error.message);
-                }
-            };
-
-            eventSource.onerror = function(error) {
-                console.error('SSE ошибка для цен:', error);
-                debugSSE('Ошибка SSE соединения для цен', error);
-                updateSSEStatus('error', 'Ошибка соединения');
-
-                setTimeout(() => {
-                    eventSource.close();
-                    initPriceChangeEvents();
-                }, 5000);
-            };
-
-            window.addEventListener('beforeunload', function() {
-                eventSource.close();
-                console.log('SSE соединение закрыто');
-            });
+            // Update UI if needed
+            updatePriceChangeUI(data);
         } catch (error) {
-            console.error('Ошибка при создании SSE подключения для цен:', error);
-            debugSSE('Ошибка при создании SSE подключения для цен', error.message);
-            updateSSEStatus('error', 'Ошибка подключения');
+            console.error('Error processing price change event:', error);
         }
-    }
+    });
 
-    // Connect to stock changes SSE
-    function initStockChangeEvents() {
+    // Connect to stock changes SSE endpoint
+    const stockEventsSource = new EventSource('/api/sse/stock-changes');
+
+    stockEventsSource.addEventListener('stock-change', function(event) {
         try {
-            console.log('Подключение к SSE для обновлений остатков...');
-            debugSSE('Подключение к SSE для обновлений остатков');
+            const data = JSON.parse(event.data);
+            console.log('Stock change event received:', data);
 
-            // Add timestamp to prevent caching
-            const timestamp = new Date().getTime();
-            const stockEventSource = new EventSource(`/api/sse/stock-changes?t=${timestamp}`);
+            // Display notification
+            showStockChangeNotification(data);
 
-            stockEventSource.onopen = function() {
-                console.log('SSE соединение для остатков открыто');
-                debugSSE('SSE соединение для остатков открыто');
-                toastr.success('Соединение для обновлений остатков установлено', 'Режим реального времени');
-            };
-
-            // Handle stock-change events
-            stockEventSource.addEventListener('stock-change', function(event) {
-                try {
-                    console.log('Получено SSE сообщение об остатках:', event.data);
-                    debugSSE('Получено событие stock-change', event.data);
-                    const stockChange = JSON.parse(event.data);
-                    showStockChangeNotification(stockChange);
-
-                    if (document.getElementById('stock-changes-tab')?.classList.contains('active') ||
-                        (document.getElementById('stockChangesTable') && !document.getElementById('stock-changes-tab'))) {
-                        addNewStockChangeToTable(stockChange);
-                    }
-                } catch (error) {
-                    console.error('Ошибка обработки SSE события остатков:', error);
-                    debugSSE('Ошибка обработки события stock-change', error.message);
-                }
-            });
-
-            // Also handle default message event in case server doesn't specify event type
-            stockEventSource.onmessage = function(event) {
-                try {
-                    console.log('Получено обычное SSE сообщение для остатков:', event.data);
-                    debugSSE('Получено стандартное сообщение для остатков (onmessage)', event.data);
-                    const data = JSON.parse(event.data);
-
-                    // Determine if this is a stock change
-                    if (data && data.hasOwnProperty('oldAmount') && data.hasOwnProperty('newAmount') && data.hasOwnProperty('warehouseId')) {
-                        debugSSE('Стандартное сообщение определено как обновление остатков', data);
-                        showStockChangeNotification(data);
-
-                        if (document.getElementById('stock-changes-tab')?.classList.contains('active') ||
-                            (document.getElementById('stockChangesTable') && !document.getElementById('stock-changes-tab'))) {
-                            addNewStockChangeToTable(data);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Ошибка обработки SSE сообщения для остатков:', error);
-                    debugSSE('Ошибка обработки стандартного сообщения для остатков', error.message);
-                }
-            };
-
-            stockEventSource.onerror = function(error) {
-                console.error('SSE ошибка для остатков:', error);
-                debugSSE('Ошибка SSE соединения для остатков', error);
-
-                setTimeout(() => {
-                    stockEventSource.close();
-                    initStockChangeEvents();
-                }, 5000);
-            };
-
-            window.addEventListener('beforeunload', function() {
-                stockEventSource.close();
-                console.log('SSE соединение для остатков закрыто');
-            });
+            // Update UI if needed
+            updateStockChangeUI(data);
         } catch (error) {
-            console.error('Ошибка при создании SSE подключения для остатков:', error);
-            debugSSE('Ошибка при создании SSE подключения для остатков', error.message);
+            console.error('Error processing stock change event:', error);
         }
-    }
+    });
 
-    // Show notification for price change
+    // Error handling for SSE connections
+    priceEventsSource.onerror = function(error) {
+        console.error('Error in price changes SSE connection:', error);
+        setTimeout(() => {
+            console.log('Attempting to reconnect to price changes...');
+            // The browser will automatically try to reconnect
+        }, 5000);
+    };
+
+    stockEventsSource.onerror = function(error) {
+        console.error('Error in stock changes SSE connection:', error);
+        setTimeout(() => {
+            console.log('Attempting to reconnect to stock changes...');
+            // The browser will automatically try to reconnect
+        }, 5000);
+    };
+
+    // Functions to show notifications
     function showPriceChangeNotification(priceChange) {
-        const formattedOldPrice = `${priceChange.oldPrice} ₽`;
-        const formattedNewPrice = `${priceChange.newPrice} ₽`;
+        const isIncrease = priceChange.changePercent > 0;
+        const absChangePercent = Math.abs(priceChange.changePercent).toFixed(1);
 
-        const notificationType = priceChange.changeAmount > 0 ? 'warning' : 'info';
-        const changeDirection = priceChange.changeAmount > 0 ? 'повысилась' : 'снизилась';
+        const title = isIncrease
+            ? `⬆️ Цена повысилась на ${absChangePercent}%`
+            : `⬇️ Цена снизилась на ${absChangePercent}%`;
 
-        toastr[notificationType](
-            `Цена товара "${priceChange.productName}" ${changeDirection} с ${formattedOldPrice} до ${formattedNewPrice} (${priceChange.changePercent.toFixed(1)}%)`,
-            'Обновление цены'
-        );
-    }
+        const message = `${priceChange.productName}<br>
+                         ${priceChange.oldPrice} ₽ → ${priceChange.newPrice} ₽<br>
+                         Артикул: ${priceChange.vendorCode}`;
 
-    // Show notification for stock change
-    function showStockChangeNotification(stockChange) {
-        const formattedOldAmount = `${stockChange.oldAmount} шт.`;
-        const formattedNewAmount = `${stockChange.newAmount} шт.`;
-
-        const notificationType = stockChange.changeAmount > 0 ? 'success' : 'warning';
-        const changeDirection = stockChange.changeAmount > 0 ? 'увеличилось' : 'уменьшилось';
-
-        toastr[notificationType](
-            `Количество товара "${stockChange.productName}" на складе "${stockChange.warehouseName}" ${changeDirection} с ${formattedOldAmount} до ${formattedNewAmount} (${Math.abs(stockChange.changePercent).toFixed(1)}%)`,
-            'Обновление остатков'
-        );
-    }
-
-    // Add new price change to prices table
-    function addNewPriceChangeToTable(priceChange) {
-        const priceChangesTable = document.getElementById('priceChangesTable');
-        if (!priceChangesTable) return;
-
-        const tableBody = priceChangesTable.querySelector('tbody');
-        if (!tableBody) return;
-
-        // Remove message row if exists
-        const messageRow = tableBody.querySelector('.sse-message-row');
-        if (messageRow) {
-            tableBody.removeChild(messageRow);
+        if (isIncrease) {
+            toastr.warning(message, title);
+        } else {
+            toastr.info(message, title);
         }
+    }
 
-        // Create new row
+    function showStockChangeNotification(stockChange) {
+        const isIncrease = stockChange.changePercent > 0;
+        const absChangePercent = Math.abs(stockChange.changePercent).toFixed(1);
+
+        const title = isIncrease
+            ? `📦 Поступление товара +${absChangePercent}%`
+            : `⚠️ Уменьшение остатков -${absChangePercent}%`;
+
+        const message = `${stockChange.productName}<br>
+                         ${stockChange.oldAmount} шт. → ${stockChange.newAmount} шт.<br>
+                         Склад: ${stockChange.warehouseName}<br>
+                         Артикул: ${stockChange.vendorCode}`;
+
+        if (isIncrease) {
+            toastr.success(message, title);
+        } else {
+            if (stockChange.newAmount === 0) {
+                toastr.error(message, '❗ Товар закончился на складе');
+            } else {
+                toastr.warning(message, title);
+            }
+        }
+    }
+
+    // Functions to update UI elements with new data
+    function updatePriceChangeUI(priceChange) {
+        // Find if this product is in the price changes table
+        const priceTable = document.getElementById('price-changes-table');
+        if (!priceTable) return;
+
+        // Check if we need to add this as a new row or update existing
+        const rows = priceTable.querySelectorAll('tbody tr');
+        let found = false;
+
+        rows.forEach(row => {
+            const vendorCode = row.querySelector('td:nth-child(3)').textContent;
+            if (vendorCode === priceChange.vendorCode) {
+                found = true;
+                // Update row data
+                updatePriceChangeRow(row, priceChange);
+            }
+        });
+
+        // If not found and we have a table, add as first row
+        if (!found && rows.length > 0) {
+            const newRow = createPriceChangeRow(priceChange);
+            const tbody = priceTable.querySelector('tbody');
+            if (tbody.firstChild) {
+                tbody.insertBefore(newRow, tbody.firstChild);
+            } else {
+                tbody.appendChild(newRow);
+            }
+
+            // Remove last row if we have more than 20
+            if (rows.length >= 20) {
+                tbody.removeChild(tbody.lastChild);
+            }
+
+            // Highlight new row
+            newRow.classList.add('highlight-new');
+            setTimeout(() => {
+                newRow.classList.remove('highlight-new');
+            }, 3000);
+        }
+    }
+
+    function updateStockChangeUI(stockChange) {
+        // Find if this product is in the stock changes table
+        const stockTable = document.getElementById('stock-changes-table');
+        if (!stockTable) return;
+
+        // Check if we need to add this as a new row or update existing
+        const rows = stockTable.querySelectorAll('tbody tr');
+        let found = false;
+
+        rows.forEach(row => {
+            const vendorCode = row.querySelector('td:nth-child(3)').textContent;
+            const warehouseId = row.getAttribute('data-warehouse-id');
+
+            if (vendorCode === stockChange.vendorCode &&
+                warehouseId == stockChange.warehouseId) {
+                found = true;
+                // Update row data
+                updateStockChangeRow(row, stockChange);
+            }
+        });
+
+        // If not found and we have a table, add as first row
+        if (!found && rows.length > 0) {
+            const newRow = createStockChangeRow(stockChange);
+            const tbody = stockTable.querySelector('tbody');
+            if (tbody.firstChild) {
+                tbody.insertBefore(newRow, tbody.firstChild);
+            } else {
+                tbody.appendChild(newRow);
+            }
+
+            // Remove last row if we have more than 20
+            if (rows.length >= 20) {
+                tbody.removeChild(tbody.lastChild);
+            }
+
+            // Highlight new row
+            newRow.classList.add('highlight-new');
+            setTimeout(() => {
+                newRow.classList.remove('highlight-new');
+            }, 3000);
+        }
+    }
+
+    // Helper functions to create and update table rows
+    function createPriceChangeRow(priceChange) {
         const row = document.createElement('tr');
-        row.className = 'highlight-new';
+        row.setAttribute('data-product-id', priceChange.productId);
 
-        // Format date
-        const date = new Date(priceChange.date);
-        const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        const changeClass = priceChange.changePercent >= 0 ? 'price-increase' : 'price-decrease';
+        const changeSign = priceChange.changePercent >= 0 ? '+' : '';
 
-        // Create badge for percentage
-        const percentBadge = priceChange.changePercent > 0
-            ? `<span class="badge bg-success">+${priceChange.changePercent.toFixed(1)}%</span>`
-            : `<span class="badge bg-danger">${priceChange.changePercent.toFixed(1)}%</span>`;
-
-        // Set row HTML
         row.innerHTML = `
             <td>${priceChange.productName}</td>
+            <td>${new Date(priceChange.date).toLocaleString()}</td>
             <td>${priceChange.vendorCode}</td>
-            <td>${priceChange.oldPrice} ₽</td>
-            <td>${priceChange.newPrice} ₽</td>
-            <td>${priceChange.changeAmount} ₽</td>
-            <td>${percentBadge}</td>
-            <td>${formattedDate}</td>
+            <td>${priceChange.oldPrice.toLocaleString()} ₽</td>
+            <td>${priceChange.newPrice.toLocaleString()} ₽</td>
+            <td class="${changeClass}">${changeSign}${priceChange.changeAmount.toLocaleString()} ₽</td>
+            <td class="${changeClass}">${changeSign}${priceChange.changePercent.toFixed(1)}%</td>
         `;
 
-        // Add row to table
-        tableBody.insertBefore(row, tableBody.firstChild);
-
-        // Update counts if they exist
-        if (typeof priceState !== 'undefined' && priceState.items) {
-            priceState.items.unshift(priceChange);
-            priceState.totalCount = (priceState.totalCount || 0) + 1;
-
-            const priceShownCount = document.getElementById('priceShownCount');
-            const priceTotalCount = document.getElementById('priceTotalCount');
-
-            if (priceShownCount) priceShownCount.textContent = priceState.items.length;
-            if (priceTotalCount) priceTotalCount.textContent = priceState.totalCount;
-        }
+        return row;
     }
 
-    // Add new stock change to stocks table
-    function addNewStockChangeToTable(stockChange) {
-        const stockChangesTable = document.getElementById('stockChangesTable');
-        if (!stockChangesTable) return;
+    function updatePriceChangeRow(row, priceChange) {
+        // Update only the values that might have changed
+        const cells = row.querySelectorAll('td');
 
-        const tableBody = stockChangesTable.querySelector('tbody');
-        if (!tableBody) return;
+        const changeClass = priceChange.changePercent >= 0 ? 'price-increase' : 'price-decrease';
+        const changeSign = priceChange.changePercent >= 0 ? '+' : '';
 
-        // Create new row
+        cells[1].textContent = new Date(priceChange.date).toLocaleString();
+        cells[3].textContent = `${priceChange.oldPrice.toLocaleString()} ₽`;
+        cells[4].textContent = `${priceChange.newPrice.toLocaleString()} ₽`;
+
+        cells[5].textContent = `${changeSign}${priceChange.changeAmount.toLocaleString()} ₽`;
+        cells[5].className = changeClass;
+
+        cells[6].textContent = `${changeSign}${priceChange.changePercent.toFixed(1)}%`;
+        cells[6].className = changeClass;
+
+        // Highlight updated row
+        row.classList.add('highlight-update');
+        setTimeout(() => {
+            row.classList.remove('highlight-update');
+        }, 3000);
+    }
+
+    function createStockChangeRow(stockChange) {
         const row = document.createElement('tr');
-        row.className = 'highlight-new';
+        row.setAttribute('data-product-id', stockChange.productId);
+        row.setAttribute('data-warehouse-id', stockChange.warehouseId);
 
-        // Format date
-        const date = new Date(stockChange.date);
-        const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}, ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        const changeClass = stockChange.changePercent >= 0 ? 'stock-increase' : 'stock-decrease';
+        const changeSign = stockChange.changePercent >= 0 ? '+' : '';
 
-        // Create badge for percentage
-        const percentBadge = stockChange.changeAmount > 0
-            ? `<span class="badge bg-success">+${Math.abs(stockChange.changePercent).toFixed(1)}%</span>`
-            : `<span class="badge bg-danger">-${Math.abs(stockChange.changePercent).toFixed(1)}%</span>`;
-
-        // Set row HTML
         row.innerHTML = `
             <td>${stockChange.productName}</td>
+            <td>${new Date(stockChange.date).toLocaleString()}</td>
             <td>${stockChange.vendorCode}</td>
             <td>${stockChange.warehouseName}</td>
-            <td>${stockChange.oldAmount}</td>
-            <td>${stockChange.newAmount}</td>
-            <td>${stockChange.changeAmount}</td>
-            <td>${percentBadge}</td>
-            <td>${formattedDate}</td>
+            <td>${stockChange.oldAmount.toLocaleString()}</td>
+            <td>${stockChange.newAmount.toLocaleString()}</td>
+            <td class="${changeClass}">${changeSign}${stockChange.changeAmount.toLocaleString()}</td>
+            <td class="${changeClass}">${changeSign}${stockChange.changePercent.toFixed(1)}%</td>
         `;
 
-        // Add row to table
-        tableBody.insertBefore(row, tableBody.firstChild);
-
-        // Update counts if they exist
-        if (typeof stockState !== 'undefined' && stockState.items) {
-            stockState.items.unshift(stockChange);
-            stockState.totalCount = (stockState.totalCount || 0) + 1;
-
-            const stockShownCount = document.getElementById('stockShownCount');
-            const stockTotalCount = document.getElementById('stockTotalCount');
-
-            if (stockShownCount) stockShownCount.textContent = stockState.items.length;
-            if (stockTotalCount) stockTotalCount.textContent = stockState.totalCount;
-        }
+        return row;
     }
 
-    // Show connection message in table
-    function showConnectionMessage(message) {
-        const priceChangesTable = document.getElementById('priceChangesTable');
-        if (!priceChangesTable) return;
+    function updateStockChangeRow(row, stockChange) {
+        // Update only the values that might have changed
+        const cells = row.querySelectorAll('td');
 
-        const tableBody = priceChangesTable.querySelector('tbody');
-        if (!tableBody) return;
+        const changeClass = stockChange.changePercent >= 0 ? 'stock-increase' : 'stock-decrease';
+        const changeSign = stockChange.changePercent >= 0 ? '+' : '';
 
-        const loadingRow = tableBody.querySelector('td[colspan="7"]');
-        if (loadingRow) {
-            loadingRow.innerHTML = `<div class="sse-connected-message">${message}</div>`;
-            return;
-        }
+        cells[1].textContent = new Date(stockChange.date).toLocaleString();
+        cells[4].textContent = stockChange.oldAmount.toLocaleString();
+        cells[5].textContent = stockChange.newAmount.toLocaleString();
 
-        const messageRow = document.createElement('tr');
-        messageRow.className = 'sse-message-row';
-        messageRow.innerHTML = `
-            <td colspan="7" class="text-center">
-                <div class="sse-connected-message">${message}</div>
-            </td>
-        `;
+        cells[6].textContent = `${changeSign}${stockChange.changeAmount.toLocaleString()}`;
+        cells[6].className = changeClass;
 
-        tableBody.insertBefore(messageRow, tableBody.firstChild);
+        cells[7].textContent = `${changeSign}${stockChange.changePercent.toFixed(1)}%`;
+        cells[7].className = changeClass;
+
+        // Highlight updated row
+        row.classList.add('highlight-update');
+        setTimeout(() => {
+            row.classList.remove('highlight-update');
+        }, 3000);
     }
 });

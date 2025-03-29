@@ -1,173 +1,205 @@
-/* SSE indicator styles */
-.sse-indicator {
-    display: flex;
-    align-items: center;
+/* SSE Notifications and Highlights CSS */
+
+/* Toast notifications customization */
+.toast-success {
+    background-color: #51a351;
+}
+.toast-error {
+    background-color: #bd362f;
+}
+.toast-info {
+    background-color: #2f96b4;
+}
+.toast-warning {
+    background-color: #f89406;
+}
+
+/* Animation for new rows */
+@keyframes highlightNew {
+    0% { background-color: rgba(76, 175, 80, 0.2); }
+    100% { background-color: transparent; }
+}
+
+@keyframes highlightUpdate {
+    0% { background-color: rgba(33, 150, 243, 0.2); }
+    100% { background-color: transparent; }
+}
+
+/* Table row highlighting */
+.highlight-new {
+    animation: highlightNew 3s ease-out;
+}
+
+.highlight-update {
+    animation: highlightUpdate 3s ease-out;
+}
+
+/* Price and stock change indicators */
+.price-increase, .stock-increase {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.price-decrease, .stock-decrease {
+    color: #f44336;
+    font-weight: bold;
+}
+
+/* Critical stock level (near zero) */
+.critical-stock {
+    background-color: rgba(244, 67, 54, 0.1);
+}
+
+/* SSE Status Indicator */
+.sse-status {
+    display: inline-block;
     padding: 5px 10px;
     border-radius: 4px;
-    margin-left: 10px;
+    margin-left: 15px;
     font-size: 12px;
-    font-weight: 500;
 }
 
-.sse-connecting {
-    background-color: #f8f9fa;
-    color: #6c757d;
-    border: 1px solid #dee2e6;
+.sse-status-connected {
+    background-color: #dff0d8;
+    color: #3c763d;
 }
 
-.sse-connected {
-    background-color: #d1e7dd;
-    color: #0f5132;
-    border: 1px solid #badbcc;
+.sse-status-disconnected {
+    background-color: #f2dede;
+    color: #a94442;
 }
 
-.sse-error {
-    background-color: #f8d7da;
-    color: #842029;
-    border: 1px solid #f5c2c7;
+.sse-status-connecting {
+    background-color: #fcf8e3;
+    color: #8a6d3b;
 }
 
-.sse-light {
-    width: 10px;
-    height: 10px;
+/* Notification Badge */
+.notification-badge {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-badge[data-count]:after {
+    content: attr(data-count);
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: #f44336;
+    color: white;
     border-radius: 50%;
-    margin-left: 8px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: bold;
 }
 
-.sse-connecting .sse-light {
-    background-color: #6c757d;
-    animation: pulse 1.5s infinite;
-}
-
-.sse-connected .sse-light {
-    background-color: #0f5132;
-}
-
-.sse-error .sse-light {
-    background-color: #842029;
-}
-
-@keyframes pulse {
-    0% {
-        opacity: 0.3;
-    }
-    50% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0.3;
-    }
-}
-
-.sse-connected-message {
-    color: #0f5132;
-    padding: 10px;
-    font-style: italic;
-    background-color: #d1e7dd;
+/* Real-time Updates Section */
+.realtime-updates {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
-    margin: 10px 0;
+    background-color: #f9f9f9;
 }
 
-.highlight-new {
-    animation: highlightNew 5s ease-out;
+.realtime-updates h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 10px;
 }
 
-@keyframes highlightNew {
-    0% {
-        background-color: rgba(25, 135, 84, 0.2);
-    }
-    100% {
-        background-color: transparent;
-    }
-}
-
-/* Debug panel styles */
-#sse-debug-panel {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    width: 400px;
-    height: 300px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    z-index: 9999;
+.update-log {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: white;
     font-family: monospace;
     font-size: 12px;
-    overflow-y: auto;
-    padding-bottom: 10px;
-    border-top-left-radius: 4px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    margin-top: 10px;
 }
 
-.debug-header {
-    position: sticky;
-    top: 0;
-    background: #333;
-    padding: 5px;
-    border-bottom: 1px solid #666;
-    display: flex;
-    justify-content: space-between;
-    z-index: 1;
+.update-log-entry {
+    padding: 5px 0;
+    border-bottom: 1px dashed #e0e0e0;
 }
 
-.debug-header button {
-    background: #555;
-    color: #fff;
-    border: none;
-    border-radius: 3px;
-    padding: 2px 6px;
-    font-size: 11px;
+.update-log-entry:last-child {
+    border-bottom: none;
+}
+
+.update-log-time {
+    color: #777;
+    margin-right: 10px;
+}
+
+.update-log-price {
+    color: #2196F3;
+}
+
+.update-log-stock {
+    color: #FF9800;
+}
+
+/* Toggle Switches for notifications */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    margin-left: 10px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
     cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
 }
 
-.debug-header button:hover {
-    background: #777;
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
 }
 
-.debug-entry {
-    padding: 5px;
-    border-bottom: 1px solid #444;
+input:checked + .slider {
+    background-color: #2196F3;
 }
 
-.debug-time {
-    color: #8bc34a;
-    margin-bottom: 2px;
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
 }
 
-.debug-message {
-    color: #03a9f4;
-    margin-bottom: 2px;
+input:checked + .slider:before {
+    transform: translateX(26px);
 }
 
-.debug-data {
-    color: #ff9800;
-    word-break: break-all;
-    white-space: pre-wrap;
-    max-height: 100px;
-    overflow-y: auto;
-    font-size: 11px;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 2px 5px;
-    border-radius: 2px;
-    margin-top: 2px;
+/* Notification settings panel */
+.notification-settings {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
 }
 
-/* Debug toggle button */
-.debug-toggle-btn {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    z-index: 9998;
-    background: #333;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 5px 10px;
-    font-size: 12px;
-    opacity: 0.7;
-    transition: opacity 0.3s;
-}
-
-.debug-toggle-btn:hover {
-    opacity: 1;
+.notification-settings label {
+    margin-right: 15px;
 }

@@ -2,56 +2,36 @@ import { Injectable } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-class ServerSentEvent {
-    constructor(
-        public data: string,
-        public type?: string,
-        public id?: string,
-    ) {}
-
-    toString(): string {
-        let result = '';
-        if (this.type) {
-            result += `event: ${this.type}\n`;
-        }
-        if (this.id) {
-            result += `id: ${this.id}\n`;
-        }
-        result += `data: ${this.data}\n\n`;
-        return result;
-    }
-}
-
 @Injectable()
 export class SseService {
-    private priceEvents = new Subject<any>();
-    private stockEvents = new Subject<any>();
+    private priceChangesSubject = new Subject<any>();
+    private stockChangesSubject = new Subject<any>();
 
     emitPriceChange(priceChange: any): void {
-        this.priceEvents.next(priceChange);
+        this.priceChangesSubject.next(priceChange);
     }
 
     emitStockChange(stockChange: any): void {
-        this.stockEvents.next(stockChange);
+        this.stockChangesSubject.next(stockChange);
     }
 
     subscribeToPriceChanges(): Observable<any> {
-        return this.priceEvents.pipe(
-            map(event => new ServerSentEvent(
-                JSON.stringify(event),
-                'price-change',
-                String(new Date().getTime())
-            ))
+        return this.priceChangesSubject.pipe(
+            map(data => ({
+                data: JSON.stringify(data),
+                type: 'price-change',
+                id: String(new Date().getTime())
+            }))
         );
     }
 
     subscribeToStockChanges(): Observable<any> {
-        return this.stockEvents.pipe(
-            map(event => new ServerSentEvent(
-                JSON.stringify(event),
-                'stock-change',
-                String(new Date().getTime())
-            ))
+        return this.stockChangesSubject.pipe(
+            map(data => ({
+                data: JSON.stringify(data),
+                type: 'stock-change',
+                id: String(new Date().getTime())
+            }))
         );
     }
 }

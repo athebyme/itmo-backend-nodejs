@@ -1,4 +1,4 @@
-// Basic types for your NestJS backend
+// Price change related types
 export interface PriceChange {
     productId: number;
     productName: string;
@@ -8,8 +8,10 @@ export interface PriceChange {
     changeAmount: number;
     changePercent: number;
     date: string;
+    isNew?: boolean;
 }
 
+// Stock change related types
 export interface StockChange {
     productId: number;
     productName: string;
@@ -23,12 +25,14 @@ export interface StockChange {
     date: string;
 }
 
+// Pagination query parameters
 export interface PaginationQuery {
-    limit: number;
+    limit?: number;
     cursor?: string;
     refresh?: boolean;
 }
 
+// Filters for price changes
 export interface PriceChangeFilter {
     minChangePercent?: number;
     maxChangePercent?: number;
@@ -38,8 +42,25 @@ export interface PriceChangeFilter {
     onlyDecreases?: boolean;
 }
 
+// Filters for stock changes
+export interface StockChangeFilter {
+    warehouseId?: number;
+    minChangePercent?: number;
+    minChangeAmount?: number;
+    since?: string;
+}
+
+// Paginated response for price changes
 export interface PaginatedPriceChanges {
     items: PriceChange[];
+    nextCursor?: string;
+    hasMore: boolean;
+    totalCount: number;
+}
+
+// Paginated response for stock changes
+export interface PaginatedStockChanges {
+    items: StockChange[];
     nextCursor?: string;
     hasMore: boolean;
     totalCount: number;
