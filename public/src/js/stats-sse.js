@@ -1,4 +1,115 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Debug helper function
+    function debugSSE(message, data) {
+        const debugEnabled = localStorage.getItem('enableSSEDebug') === 'true';
+        if (debugEnabled) {
+            console.log(`%cSSE Debug: ${message}`, 'color: #9c27b0; font-weight: bold;', data || '');
+
+            // Add to debug panel if it exists
+            const debugPanel = document.getElementById('sse-debug-panel');
+            if (debugPanel) {
+                const entry = document.createElement('div');
+                entry.className = 'debug-entry';
+                entry.innerHTML = `
+                    <div class="debug-time">${new Date().toLocaleTimeString()}</div>
+                    <div class="debug-message">${message}</div>
+                    <div class="debug-data">${data ? JSON.stringify(data) : ''}</div>
+                `;
+                debugPanel.appendChild(entry);
+
+                // Scroll to bottom
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+
+                // Limit entries
+                if (debugPanel.children.length > 100) {
+                    debugPanel.removeChild(debugPanel.firstChild);
+                }
+            }
+        }
+    }
+
+    // Toggle debug mode
+    window.toggleSSEDebug = function() {
+        const current = localStorage.getItem('enableSSEDebug') === 'true';
+        localStorage.setItem('enableSSEDebug', (!current).toString());
+        alert(`SSE Debug ${!current ? 'включен' : 'выключен'}`);
+        location.reload();
+    }
+
+    // Create debug panel if debug is enabled
+    if (localStorage.getItem('enableSSEDebug') === 'true') {
+        const debugPanel = document.createElement('div');
+        debugPanel.id = 'sse-debug-panel';
+        debugPanel.innerHTML = `
+            <div class="debug-header">
+                SSE Debug <button onclick="toggleSSEDebug()">Выключить</button>
+                <button onclick="document.getElementById('sse-debug-panel').innerHTML = '<div class=\\'debug-header\\'>SSE Debug <button onclick=\\'toggleSSEDebug()\\'>Выключить</button><button onclick=\\'document.getElementById(\\\"sse-debug-panel\\\").innerHTML = \\\"\\\"\\'>Очистить</button></div>'">Очистить</button>
+            </div>
+        `;
+        document.body.appendChild(debugPanel);
+
+        // Add style
+        const style = document.createElement('style');
+        style.textContent = `
+            #sse-debug-panel {
+                position: fixed;
+                bottom: 0;
+                right: 0;
+                width: 400px;
+                height: 300px;
+                background: rgba(0,0,0,0.8);
+                color: #fff;
+                z-index: 9999;
+                font-family: monospace;
+                font-size: 12px;
+                overflow-y: auto;
+                padding-bottom: 10px;
+            }
+            .debug-header {
+                position: sticky;
+                top: 0;
+                background: #333;
+                padding: 5px;
+                border-bottom: 1px solid #666;
+                display: flex;
+                justify-content: space-between;
+            }
+            .debug-entry {
+                padding: 5px;
+                border-bottom: 1px solid #444;
+            }
+            .debug-time {
+                color: #8bc34a;
+                margin-bottom: 2px;
+            }
+            .debug-message {
+                color: #03a9f4;
+                margin-bottom: 2px;
+            }
+            .debug-data {
+                color: #ff9800;
+                word-break: break-all;
+                white-space: pre-wrap;
+            }
+        `;
+        document.head.appendChild(style);
+    } else {
+        // Add debug toggle button
+        const btn = document.createElement('button');
+        btn.textContent = 'Debug SSE';
+        btn.style.position = 'fixed';
+        btn.style.bottom = '10px';
+        btn.style.right = '10px';
+        btn.style.zIndex = '9999';
+        btn.style.opacity = '0.7';
+        btn.style.background = '#333';
+        btn.style.color = '#fff';
+        btn.style.border = 'none';
+        btn.style.borderRadius = '4px';
+        btn.style.padding = '5px 10px';
+        btn.onclick = window.toggleSSEDebug;
+        document.body.appendChild(btn);
+    }
     // Create SSE connection status indicator
     createSSEIndicator();
 
@@ -70,6 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             eventSource.onopen = function() {
                 console.log('SSE соединение для цен открыто');
+                debugSSE('SSE соединение для цен открыто');
                 updateSSEStatus('connected', 'Соединение активно');
 
                 toastr.success('Соединение для обновлений цен установлено', 'Режим реального времени');
@@ -85,6 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
             eventSource.addEventListener('price-change', function(event) {
                 try {
                     console.log('Получено SSE сообщение о цене:', event.data);
+                    debugSSE('Получено событие price-change', event.data);
                     const priceChange = JSON.parse(event.data);
                     showPriceChangeNotification(priceChange);
 
@@ -93,11 +206,36 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } catch (error) {
                     console.error('Ошибка обработки SSE события цены:', error);
+                    debugSSE('Ошибка обработки события price-change', error.message);
                 }
             });
 
+            // Also handle default message event in case server doesn't specify event type
+            eventSource.onmessage = function(event) {
+                try {
+                    console.log('Получено обычное SSE сообщение:', event.data);
+                    debugSSE('Получено стандартное сообщение (onmessage)', event.data);
+                    const data = JSON.parse(event.data);
+
+                    // Determine event type from data
+                    if (data.hasOwnProperty('oldPrice') && data.hasOwnProperty('newPrice')) {
+                        // This looks like a price change
+                        debugSSE('Определено как обновление цены', data);
+                        showPriceChangeNotification(data);
+
+                        if (document.getElementById('price-changes-tab')?.classList.contains('active')) {
+                            addNewPriceChangeToTable(data);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка обработки SSE сообщения:', error);
+                    debugSSE('Ошибка обработки стандартного сообщения', error.message);
+                }
+            };
+
             eventSource.onerror = function(error) {
                 console.error('SSE ошибка для цен:', error);
+                debugSSE('Ошибка SSE соединения для цен', error);
                 updateSSEStatus('error', 'Ошибка соединения');
 
                 setTimeout(() => {
@@ -144,6 +282,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error('Ошибка обработки SSE события остатков:', error);
                 }
             });
+
+            // Also handle default message event in case server doesn't specify event type
+            stockEventSource.onmessage = function(event) {
+                try {
+                    console.log('Получено обычное SSE сообщение для остатков:', event.data);
+                    const data = JSON.parse(event.data);
+
+                    // Determine event type from data
+                    if (data.hasOwnProperty('oldAmount') && data.hasOwnProperty('newAmount') && data.hasOwnProperty('warehouseId')) {
+                        // This looks like a stock change
+                        showStockChangeNotification(data);
+
+                        if (document.getElementById('stock-changes-tab')?.classList.contains('active')) {
+                            addNewStockChangeToTable(data);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка обработки SSE сообщения для остатков:', error);
+                }
+            };
 
             stockEventSource.onerror = function(error) {
                 console.error('SSE ошибка для остатков:', error);
@@ -294,6 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Show connection message in table
     function showConnectionMessage(message) {
         const priceChangesTable = document.getElementById('priceChangesTable');
         if (!priceChangesTable) return;
