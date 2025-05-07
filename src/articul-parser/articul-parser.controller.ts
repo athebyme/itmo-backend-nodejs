@@ -9,7 +9,7 @@ export class ArticulParserController {
             layout: 'main_layout',
             title: 'Тестирование парсера артикулов',
             body_scripts: '<script src="src/js/articul-parser.js"></script><script src="src/js/loadTime.js"></script><script src="src/js/menuActive.js"></script>',
-            head_extra: '',
+            head_extra: '<link rel="stylesheet" href="src/static/css/articul-parser.css">',
         };
     }
 }
