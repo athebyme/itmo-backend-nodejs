@@ -5,6 +5,7 @@ import { ConstructorController } from "./constructor/constructor.controller";
 import { ConverterController } from "./converter/converter.controller";
 import { WildberriesController } from "./wildberries/wildberries.controller";
 import { StatsController } from "./stats/stats.controller";
+import { ArticulParserController } from "./articul-parser/articul-parser.controller";
 
 @Module({
   imports: [],
@@ -14,7 +15,8 @@ import { StatsController } from "./stats/stats.controller";
     ConverterController,
     ConstructorController,
     WildberriesController,
-    StatsController
+    StatsController,
+    ArticulParserController
   ],
   providers: [],
 })

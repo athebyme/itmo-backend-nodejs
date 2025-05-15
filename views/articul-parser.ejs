@@ -1,0 +1,305 @@
+<div class="layout">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap & Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <main class="main">
+        <section class="section">
+            <section class="section">
+                <h2 class="section__title">Тестирование парсера артикулов</h2>
+                
+                <div class="explanation">
+                    <p>Данная страница позволяет проверить, как функция <code>read_prod_data_from_seller_articul</code> обрабатывает различные форматы артикулов. Введите артикул в поле ниже или выберите один из примеров, чтобы увидеть результат разбора.</p>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title m-0">Формат артикула (Вариант 2)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="articul-visualization">
+                                    <div class="articul-part part-prod-id">
+                                        <div class="part-value">YYYY</div>
+                                        <div class="part-label">prod_id</div>
+                                    </div>
+                                    <div class="articul-part part-mp-id">
+                                        <div class="part-value">M</div>
+                                        <div class="part-label">mp_id</div>
+                                    </div>
+                                    <div class="articul-part part-clone-id">
+                                        <div class="part-value">N</div>
+                                        <div class="part-label">clone_id</div>
+                                    </div>
+                                    <div class="articul-part part-client-id">
+                                        <div class="part-value">D</div>
+                                        <div class="part-label">client_id</div>
+                                    </div>
+                                    <div class="articul-part part-version">
+                                        <div class="part-value">S</div>
+                                        <div class="part-label">version</div>
+                                    </div>
+                                    <div class="articul-part part-seller-prefix">
+                                        <div class="part-value">S</div>
+                                        <div class="part-label">seller_prefix</div>
+                                    </div>
+                                    <div class="articul-part part-sx-id">
+                                        <div class="part-value">XXXX</div>
+                                        <div class="part-label">sx_id</div>
+                                    </div>
+                                </div>
+                                <p><strong>Где:</strong></p>
+                                <ul>
+                                    <li><code>YYYY</code> - год добавления товара (4 цифры)</li>
+                                    <li><code>M</code> - маркетплейс (буква: Z=Озон, W=Wildberries)</li>
+                                    <li><code>N</code> - номер варианта (цифра)</li>
+                                    <li><code>D</code> - номер департамента (буква)</li>
+                                    <li><code>S</code> - статус товара (цифра)</li>
+                                    <li><code>S</code> - сегмент (буква)</li>
+                                    <li><code>XXXX</code> - уникальный идентификатор</li>
+                                </ul>
+                                <p class="mb-0">Пример: <code>2025W1A3Bsku-12345</code></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title m-0">Исходный сложный формат</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="articul-visualization">
+                                    <div class="articul-part part-prod-id">
+                                        <div class="part-value">NNNN</div>
+                                        <div class="part-label">prod_id</div>
+                                    </div>
+                                    <div class="articul-part part-mp-id">
+                                        <div class="part-value">L</div>
+                                        <div class="part-label">mp_id</div>
+                                    </div>
+                                    <div class="articul-part part-clone-id">
+                                        <div class="part-value">N</div>
+                                        <div class="part-label">clone_id</div>
+                                    </div>
+                                    <div class="articul-part part-client-id">
+                                        <div class="part-value">L</div>
+                                        <div class="part-label">client_id</div>
+                                    </div>
+                                    <div class="articul-part part-version">
+                                        <div class="part-value">N</div>
+                                        <div class="part-label">version</div>
+                                    </div>
+                                    <div class="articul-part part-seller-prefix">
+                                        <div class="part-value">L</div>
+                                        <div class="part-label">seller_prefix</div>
+                                    </div>
+                                    <div class="articul-part part-sx-id">
+                                        <div class="part-value">XXXX</div>
+                                        <div class="part-label">sx_id</div>
+                                    </div>
+                                </div>
+                                <p><strong>Где:</strong></p>
+                                <ul>
+                                    <li><code>NNNN</code> - цифровой префикс</li>
+                                    <li><code>L</code> - буква маркетплейса</li>
+                                    <li><code>N</code> - номер клона</li>
+                                    <li><code>L</code> - буква клиента</li>
+                                    <li><code>N</code> - номер версии</li>
+                                    <li><code>L</code> - префикс поставщика</li>
+                                    <li><code>XXXX</code> - идентификатор товара у поставщика</li>
+                                </ul>
+                                <p class="mb-0">Пример: <code>8457Z1C1A0t-00009990</code></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h4>Примеры артикулов для тестирования:</h4>
+                        <div class="examples-container">
+                            <div class="example-card" data-articul="8457Z1C1A0t-00009990">
+                                <div class="example-title">Стандартный формат</div>
+                                <div class="example-value">8457Z1C1A0t-00009990</div>
+                            </div>
+                            <div class="example-card" data-articul="2025Z1A5Bsku-12345">
+                                <div class="example-title">Новый формат (YYYY)</div>
+                                <div class="example-value">2025Z1A5Bsku-12345</div>
+                            </div>
+                            <div class="example-card" data-articul="2024W1B3Aitem-67890">
+                                <div class="example-title">Новый формат (Wildberries)</div>
+                                <div class="example-value">2024W1B3Aitem-67890</div>
+                            </div>
+                            <div class="example-card" data-articul="1234Z1C1Acolor-red456">
+                                <div class="example-title">С цветовой маркировкой</div>
+                                <div class="example-value">1234Z1C1Acolor-red456</div>
+                            </div>
+                            <div class="example-card" data-articul="9832Z1A5Bmd5-abc123">
+                                <div class="example-title">С хешированием</div>
+                                <div class="example-value">9832Z1A5Bmd5-abc123</div>
+                            </div>
+                            <div class="example-card" data-articul="id-25071-1223">
+                                <div class="example-title">Простой формат</div>
+                                <div class="example-value">id-25071-1223</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label for="articul-input" class="form-label">Введите артикул для тестирования:</label>
+                            <div class="input-group mb-3">
+                                <input type="text" id="articul-input" class="form-control articul-input" value="2025Z1A5Bsku-12345" placeholder="Введите артикул...">
+                                <button class="btn btn-primary" id="parse-btn">Разобрать</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="result-container" class="result-container d-none">
+                    <h4 class="mb-3">Результат разбора:</h4>
+                    <div id="result-content">
+                        <!-- Результаты будут добавлены через JavaScript -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script>
+        // Эмуляция функции read_prod_data_from_seller_articul
+        function read_prod_data_from_seller_articul(articul) {
+            // Словарь соответствия однобуквенных префиксов поставщика двухбуквенным
+            const long_seller_prefix = {
+                'A': 'an', // ООО АНДРЕЙ
+                'S': 'sx'  // СексОптовик
+            };
+            
+            let prod_data = {};
+            
+            // Исходный артикул
+            prod_data.product_id = articul.trim();
+            
+            // Удаление 'wb' из начала или конца артикула
+            articul = articul.replace(/wb$/i, '');
+            articul = articul.replace(/^wb/i, '');
+            
+            // Замена опечатки 'WW' на 'W'
+            articul = articul.replace(/WW1C/i, 'W1C');
+            
+            // Проверка на сложный формат
+            const regex = /^(\d+)(\D)(\d+)(\D)(\d+)(\D)(.*)?/;
+            const matches = regex.exec(articul.trim());
+            
+            if (matches) {
+                // Сложный формат
+                prod_data.prod_id = matches[1];
+                prod_data.mp_id = matches[2];
+                prod_data.clone_id = matches[3];
+                prod_data.client_id = matches[4];
+                prod_data.version = matches[5];
+                prod_data.seller_prefix = matches[6];
+                prod_data.sx_id = matches[7];
+                
+                // Коррекция sx_id из-за глюка WB
+                if (prod_data.sx_id && /.+_\d+_*\d+$/.test(prod_data.sx_id)) {
+                    prod_data.sx_id = prod_data.sx_id.replace(/_\d+_*\d+$/, '');
+                }
+                
+                prod_data.seller_articul = prod_data.sx_id;
+                
+                // Корректировка артикула товара для поставщика ООО АНДРЕЙ
+                if (prod_data.seller_prefix === "A") {
+                    prod_data.seller_articul = prod_data.seller_articul.replace(/yt/i, 'УТ');
+                    prod_data.seller_articul = prod_data.seller_articul.toUpperCase();
+                    // iconv не эмулируем
+                }
+                
+                // Преобразование однобуквенного префикса поставщика в двухбуквенный
+                prod_data.seller = long_seller_prefix[prod_data.seller_prefix];
+                
+            } else {
+                // Простой формат
+                articul = articul.replace(/^id-/i, '');
+                const pieces = articul.trim().split("-");
+                
+                prod_data.seller_prefix = 'S';
+                prod_data.seller = long_seller_prefix[prod_data.seller_prefix];
+                prod_data.sx_id = pieces[0];
+                prod_data.seller_articul = prod_data.sx_id;
+            }
+            
+            return prod_data;
+        }
+        
+        // Обработчики событий
+        document.addEventListener('DOMContentLoaded', function() {
+            const articulInput = document.getElementById('articul-input');
+            const parseBtn = document.getElementById('parse-btn');
+            const resultContainer = document.getElementById('result-container');
+            const resultContent = document.getElementById('result-content');
+            const exampleCards = document.querySelectorAll('.example-card');
+            
+            // Функция для отображения результата
+            function displayResult(articul) {
+                const result = read_prod_data_from_seller_articul(articul);
+                
+                let html = '';
+                for (const key in result) {
+                    html += `
+                    <div class="prop-item">
+                        <div class="prop-name">$prod_data[${key}]</div>
+                        <div class="prop-value">'${result[key]}'</div>
+                    </div>
+                    `;
+                }
+                
+                resultContent.innerHTML = html;
+                resultContainer.classList.remove('d-none');
+                
+                // Прокрутка к результату
+                resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            
+            // Обработчик клика на кнопку разбора
+            parseBtn.addEventListener('click', function() {
+                const articul = articulInput.value.trim();
+                if (articul) {
+                    displayResult(articul);
+                }
+            });
+            
+            // Обработка нажатия Enter в поле ввода
+            articulInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    parseBtn.click();
+                }
+            });
+            
+            // Обработчики кликов на примеры
+            exampleCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const articul = this.getAttribute('data-articul');
+                    articulInput.value = articul;
+                    displayResult(articul);
+                });
+            });
+            
+            // Разбор примера по умолчанию при загрузке
+            displayResult(articulInput.value);
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+
+        </section>
+    </main>
+</div>

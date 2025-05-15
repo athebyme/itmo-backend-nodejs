@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('constructor-link').classList.add('active');
     } else if (path.includes('wildberries')) {
         document.getElementById('wildberries-link').classList.add('active');
+    }else if (path.includes('articul-parser')) {
+        document.getElementById('articul-parser-link').classList.add('active');
     }
 
     var navbarToggler = document.querySelector('.navbar-toggler');
