@@ -7,7 +7,7 @@ const keycloakConfig = {
     clientId: 'gomarket-frontend'
 };
 
-const keycloak = new Keycloak(keycloakConfig);
+const keycloak = new window.Keycloak(keycloakConfig);
 
 const authService = {
     _isInitialized: false,
