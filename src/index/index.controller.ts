@@ -8,7 +8,7 @@ export class IndexController {
         return {
             layout: 'auth_layout',
             title: 'Авторизация',
-            body_scripts: '<script src="./src/js/authorization.js"></script>',
+            body_scripts: '<script src="./src/js/authorization.js" type="module"></script>',
             head_extra: '<link rel="stylesheet" href="./src/static/css/login.css">',
         };
     }
