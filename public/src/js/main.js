@@ -1,34 +1,35 @@
+import authService from './authorization.js';
 
-function displayUsername() {
-    const username = localStorage.getItem('username');
-    console.log("Username from localStorage: ", username);
-    if (username) {
-        const usernameDisplay = document.getElementById('usernameDisplay');
-        if (usernameDisplay) {
-            usernameDisplay.textContent = username;
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        const isAuthenticated = await authService.init();
+
+        if (isAuthenticated) {
+            console.log("Пользователь аутентифицирован через Keycloak в main.js!");
+            const username = authService.getUsername();
+            if (username) {
+                const usernameDisplayElements = document.querySelectorAll('#usernameDisplay, #mobileUsernameDisplay, #welcomeUsername');
+                usernameDisplayElements.forEach(el => {
+                    if (el) el.textContent = username;
+                });
+            }
         } else {
-            console.error("Элемент с id 'usernameDisplay' не найден");
+            console.log("Пользователь не аутентифицирован (main.js). Используется onLoad: 'check-sso'.");
+        }
+    } catch (error) {
+        console.error("Ошибка инициализации аутентификации Keycloak в main.js:", error);
+        if (typeof toastr !== 'undefined') {
+            toastr.error("Ошибка аутентификации. Пожалуйста, попробуйте позже.");
         }
     }
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    displayUsername();
-    const logoutLink = document.getElementById('logoutLink');
-    if (logoutLink) {
-        logoutLink.addEventListener('click', function(event) {
-            event.preventDefault();
-
-            localStorage.removeItem('username');
-            localStorage.removeItem('isLoggedIn');
-
-            toastr.success("Вы успешно вышли из системы.");
-
-            setTimeout(function() {
-                window.location.replace('./');
-            }, 2000);
-        });
-    } else {
-        console.error("Элемент с id 'logoutLink' не найден");
-    }
+    const logoutLinks = document.querySelectorAll('#logoutLink, #mobileLogoutLink');
+    logoutLinks.forEach(link => {
+        if (link) {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                authService.logout();
+            });
+        }
+    });
 });

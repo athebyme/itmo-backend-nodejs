@@ -1,0 +1,274 @@
+=== Project Source Code Compilation ===
+=== Path: src/ ===
+=== Date: Tue May 13 13:22:35 MSK 2025 ===
+
+=== src/app.controller.spec.ts ===
+
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+describe('AppController', () => {
+  let appController: AppController;
+
+  beforeEach(async () => {
+    const app: TestingModule = await Test.createTestingModule({
+      controllers: [AppController],
+      providers: [AppService],
+    }).compile();
+
+    appController = app.get<AppController>(AppController);
+  });
+
+  describe('root', () => {
+    it('should return "Hello World!"', () => {
+      expect(appController.getHello()).toBe('Hello World!');
+    });
+  });
+});
+
+
+=== src/app.controller.ts ===
+
+import { Controller, Get, Render } from '@nestjs/common';
+
+@Controller()
+export class AppController {
+}
+
+=== src/app.module.ts ===
+
+import { Module } from '@nestjs/common';
+import { IndexController } from './index/index.controller';
+import { MainController } from "./main/main.controller";
+import { ConstructorController } from "./constructor/constructor.controller";
+import { ConverterController } from "./converter/converter.controller";
+import { WildberriesController } from "./wildberries/wildberries.controller";
+import { StatsController } from "./stats/stats.controller";
+
+@Module({
+  imports: [],
+  controllers: [
+    IndexController,
+    MainController,
+    ConverterController,
+    ConstructorController,
+    WildberriesController,
+    StatsController
+  ],
+  providers: [],
+})
+export class AppModule {}
+
+=== src/app.service.ts ===
+
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AppService {
+  getHello(): string {
+    return 'Hello World!';
+  }
+}
+
+
+=== src/constructor/constructor.controller.ts ===
+
+import { Controller, Get, Render } from '@nestjs/common';
+
+@Controller('constructor')
+export class ConstructorController {
+    @Get()
+    @Render('constructor')
+    getConstructorPage() {
+        return {
+            layout: 'main_layout',
+            title: 'Конструктор таблицы',
+            body_scripts: '<script defer src="src/js/tableConstructor.js"><script src="src/js/loadTime.js"></script><script defer src="src/js/menuActive.js"></script>',
+            head_extra: '',
+        };
+    }
+}
+
+=== src/constructor/constructor.module.ts ===
+
+import { Module } from '@nestjs/common';
+import { ConstructorController } from './constructor.controller';
+
+@Module({
+    controllers: [ConstructorController],
+})
+export class ConstructorModule {}
+
+=== src/converter/converter.controller.ts ===
+
+import { Controller, Get, Render } from '@nestjs/common';
+
+@Controller('converter')
+export class ConverterController {
+    @Get()
+    @Render('converter')
+    getConverterPage() {
+        return {
+            layout: 'main_layout',
+            title: 'Конвертер валют - Панель управления продавца',
+            body_scripts: '<script src="src/js/loadTime.js"></script><script src="src/js/menuActive.js"></script><script src="src/js/converter.js"></script>',
+            head_extra : '',
+        };
+    }
+}
+
+=== src/converter/converter.module.ts ===
+
+import { Module } from '@nestjs/common';
+import { ConverterController } from './converter.controller';
+
+@Module({
+    controllers: [ConverterController],
+})
+export class ConverterModule {}
+
+=== src/index/index.controller.ts ===
+
+import { Controller, Get, Render } from '@nestjs/common';
+
+@Controller()
+export class IndexController {
+    @Get()
+    @Render('index')
+    getIndexPage() {
+        return {
+            layout: 'auth_layout',
+            title: 'Авторизация',
+            body_scripts: '<script src="./src/js/authorization.js"></script>',
+            head_extra: '<link rel="stylesheet" href="./src/static/css/login.css">',
+        };
+    }
+}
+
+=== src/index/index.module.ts ===
+
+import { Module } from '@nestjs/common';
+import { IndexController } from './index.controller';
+
+@Module({
+    controllers: [IndexController],
+})
+export class IndexModule {}
+
+=== src/main.ts ===
+
+import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.useStaticAssets(join(__dirname, '..', 'public'));
+  app.setBaseViewsDir(join(__dirname, '..', 'views'));
+  app.setViewEngine('ejs');
+
+  const expressLayouts = require('express-ejs-layouts');
+  app.use(expressLayouts);
+  app.set('layout', 'layouts/main_layout');
+  app.set('layout extractScripts', true);
+  app.set('layout extractStyles', true);
+
+  await app.listen(3000);
+}
+bootstrap();
+
+=== src/main/main.controller.ts ===
+
+import { Controller, Get, Render } from '@nestjs/common';
+
+@Controller('main')
+export class MainController {
+    @Get()
+    @Render('main')
+    getMainPage() {
+        return {
+            layout: 'main_layout',
+            title: 'Панель управления продавца',
+            body_scripts: '<script src="./src/js/main.js"></script>' +
+                '<script src="src/js/loadTime.js"></script>\n' +
+                '<script src="src/js/menuActive.js"></script>\n',
+            head_extra: '',
+        };
+    }
+}
+
+=== src/main/main.module.ts ===
+
+import { Module } from '@nestjs/common';
+import { MainController } from './main.controller';
+
+@Module({
+    controllers: [MainController],
+})
+export class MainModule {}
+
+=== src/stats/stats.controller.ts ===
+
+import { Controller, Get, Render, Query } from '@nestjs/common';
+
+@Controller('stats')
+export class StatsController {
+    @Get()
+    @Render('stats')
+    getStatsPage(@Query('seller') seller: string = 'bananzza') {
+        return {
+            layout: 'main_layout',
+            title: 'Статистика изменений - Панель управления продавца',
+            body_scripts: `
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script src="src/js/stats.js"></script>
+                <script src="src/js/loadTime.js"></script>
+                <script src="src/js/menuActive.js"></script>
+            `,
+            head_extra: '<link rel="stylesheet" href="src/static/css/stats.css">',
+            seller: seller // Pass the seller parameter to the template
+        };
+    }
+}
+
+=== src/stats/stats.module.ts ===
+
+import { Module } from '@nestjs/common';
+import { StatsController } from './stats.controller';
+
+@Module({
+    controllers: [StatsController],
+})
+export class StatsModule {}
+
+=== src/wildberries/wildberries.controller.ts ===
+
+import { Controller, Get, Render } from '@nestjs/common';
+
+@Controller('wildberries')
+export class WildberriesController {
+    @Get()
+    @Render('wildberries')
+    getWildberriesPage() {
+        return {
+            layout: 'main_layout',
+            title: 'Товары Wildberries',
+            body_scripts: '<script src="src/js/wildberries.js"></script><script src="src/js/menuActive.js"></script>',
+            head_extra: '',
+        };
+    }
+}
+
+=== src/wildberries/wildberries.module.ts ===
+
+import { Module } from '@nestjs/common';
+import { WildberriesController } from './wildberries.controller';
+
+@Module({
+    controllers: [WildberriesController],
+})
+export class WildberriesModule {}
+
