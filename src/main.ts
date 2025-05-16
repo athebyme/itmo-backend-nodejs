@@ -15,6 +15,7 @@ async function bootstrap() {
   app.set('layout', 'layouts/main_layout');
   app.set('layout extractScripts', true);
   app.set('layout extractStyles', true);
+  app.useStaticAssets(join(__dirname, '..', 'public'));
 
   await app.listen(3000);
 }
