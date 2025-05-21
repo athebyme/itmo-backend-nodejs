@@ -37,12 +37,50 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" id="products-link" href="/products">
+                        <i class="bi bi-box-seam"></i>
+                        Продукты
+                    </a>
+                </li>
+
+                <li class="nav-item">
                     <a class="nav-link" id="wildberries-link" href="/wildberries">
                         <i class="bi bi-images"></i>
                         Wildberries
                     </a>
                 </li>
             </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-gear"></i> Настройки API
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="settingsDropdown">
+                        <div class="px-3 py-2">
+                            <div class="mb-2">
+                                <label for="menuTenantId" class="form-label">Tenant ID:</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm" id="menuTenantId" value="default">
+                                    <button class="btn btn-outline-primary btn-sm" type="button" id="menuSaveTenantId">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="menuSupplierId" class="form-label">Supplier ID:</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm" id="menuSupplierId" value="default">
+                                    <button class="btn btn-outline-primary btn-sm" type="button" id="menuSaveSupplierId">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
 
             <div class="navbar-nav ms-auto d-lg-none">
                 <div class="nav-item dropdown">
@@ -82,6 +120,43 @@
                 setTimeout(function() {
                     window.location.replace('./');
                 }, 2000);
+            });
+        }
+    });
+</script>
+
+<script type="module">
+    import authService from '/src/js/simple-auth-service.js';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Заполняем поля текущими значениями
+        const menuTenantId = document.getElementById('menuTenantId');
+        const menuSupplierId = document.getElementById('menuSupplierId');
+
+        if (menuTenantId && menuSupplierId) {
+            menuTenantId.value = authService.getTenantId();
+            menuSupplierId.value = authService.getSupplierId();
+
+            // Обработчик для сохранения tenant_id
+            document.getElementById('menuSaveTenantId').addEventListener('click', function() {
+                const tenantId = menuTenantId.value.trim();
+                if (tenantId) {
+                    authService.setTenantId(tenantId);
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success('Tenant ID сохранен');
+                    }
+                }
+            });
+
+            // Обработчик для сохранения supplier_id
+            document.getElementById('menuSaveSupplierId').addEventListener('click', function() {
+                const supplierId = menuSupplierId.value.trim();
+                if (supplierId) {
+                    authService.setSupplierId(supplierId);
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success('Supplier ID сохранен');
+                    }
+                }
             });
         }
     });

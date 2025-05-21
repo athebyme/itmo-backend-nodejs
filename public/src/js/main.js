@@ -1,11 +1,13 @@
-import authService from './authorization.js';
+import authService from './simple-auth-service.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
     try {
-        const isAuthenticated = await authService.init();
+        // Простая инициализация
+        await authService.init();
 
-        if (isAuthenticated) {
-            console.log("Пользователь аутентифицирован через Keycloak в main.js!");
+        // Если пользователь аутентифицирован, обновляем UI
+        if (authService.isAuthenticated()) {
+            console.log("Пользователь аутентифицирован");
             const username = authService.getUsername();
             if (username) {
                 const usernameDisplayElements = document.querySelectorAll('#usernameDisplay, #mobileUsernameDisplay, #welcomeUsername');
@@ -14,15 +16,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                 });
             }
         } else {
-            console.log("Пользователь не аутентифицирован (main.js). Используется onLoad: 'check-sso'.");
+            console.log("Пользователь не аутентифицирован. Перенаправление на страницу входа...");
+            window.location.href = '/';
         }
     } catch (error) {
-        console.error("Ошибка инициализации аутентификации Keycloak в main.js:", error);
+        console.error("Ошибка при инициализации сервиса аутентификации:", error);
         if (typeof toastr !== 'undefined') {
             toastr.error("Ошибка аутентификации. Пожалуйста, попробуйте позже.");
         }
     }
 
+    // Остальной код остается без изменений
     const logoutLinks = document.querySelectorAll('#logoutLink, #mobileLogoutLink');
     logoutLinks.forEach(link => {
         if (link) {

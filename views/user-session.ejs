@@ -1,0 +1,190 @@
+<aside class="aside-wrapper d-none d-lg-block">
+    <aside class="aside enhanced-profile">
+        <!-- Градиентный хедер с информацией о пользователе -->
+        <div class="profile-header">
+            <div class="profile-header-actions">
+                <button class="profile-action-btn" title="Настройки">
+                    <i class="bi bi-gear"></i>
+                </button>
+                <button class="profile-action-btn" title="Уведомления">
+                    <i class="bi bi-bell"></i>
+                    <span class="notification-badge" id="notificationBadge">3</span>
+                </button>
+            </div>
+            
+            <div class="profile-avatar">
+                <span id="profileInitial">А</span>
+            </div>
+            <h3 class="profile-name" id="profileUsername">Загрузка...</h3>
+            <p class="profile-email" id="profileEmail"></p>
+            <div class="profile-status">
+                <span class="status-badge active">Активен</span>
+                <span class="status-separator">•</span>
+                <span class="profile-role" id="profileRole">Продавец</span>
+            </div>
+        </div>
+        
+        <!-- Закругленный разделитель -->
+        <div class="profile-curve-separator"></div>
+        
+        <!-- Информация о последнем входе -->
+        <div class="profile-last-login">
+            <i class="bi bi-clock"></i>
+            <div>
+                <span>Последний вход:</span> 
+                <span id="lastLogin"><script>document.write(new Date().toLocaleDateString('ru-RU'))</script></span>
+            </div>
+        </div>
+        
+        <!-- Краткая статистика -->
+        <div class="profile-quick-stats">
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="bi bi-bar-chart"></i>
+                </div>
+                <span class="stat-label">Продажи</span>
+                <span class="stat-value">₽124,500</span>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon blue">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <span class="stat-label">Товары</span>
+                <span class="stat-value">45</span>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon green">
+                    <i class="bi bi-star"></i>
+                </div>
+                <span class="stat-label">Рейтинг</span>
+                <span class="stat-value">4.8</span>
+            </div>
+        </div>
+        
+        <!-- Разделы управления аккаунтом -->
+        <div class="profile-menu">
+            <div class="menu-category">Управление аккаунтом</div>
+            
+            <!-- Секция профиля -->
+            <div class="menu-item" data-section="profile">
+                <div class="menu-item-header">
+                    <div class="menu-item-icon">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <span class="menu-item-title">Профиль</span>
+                    <i class="bi bi-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item-content">
+                    <div class="menu-content-inner">
+                        <div class="profile-detail">
+                            <span class="detail-label">Имя:</span>
+                            <span class="detail-value" id="detailUsername">[Имя пользователя]</span>
+                        </div>
+                        <div class="profile-detail">
+                            <span class="detail-label">Email:</span>
+                            <span class="detail-value" id="detailEmail">Не указан</span>
+                        </div>
+                        <div class="profile-detail">
+                            <span class="detail-label">Роль:</span>
+                            <span class="detail-value" id="detailRole">Продавец</span>
+                        </div>
+                        <button class="profile-action-button">Редактировать</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Секция уведомлений -->
+            <div class="menu-item" data-section="notifications">
+                <div class="menu-item-header">
+                    <div class="menu-item-icon">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                    <span class="menu-item-title">
+                        Уведомления
+                        <span class="menu-badge" id="menuNotificationBadge">3</span>
+                    </span>
+                    <i class="bi bi-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item-content">
+                    <div class="menu-content-inner">
+                        <div class="notification-item primary">
+                            <p class="notification-title">Новый заказ #ORD-2831</p>
+                            <p class="notification-time">2 часа назад</p>
+                        </div>
+                        <div class="notification-item success">
+                            <p class="notification-title">Продажа успешно завершена</p>
+                            <p class="notification-time">Вчера, 15:30</p>
+                        </div>
+                        <div class="notification-item warning">
+                            <p class="notification-title">Обновление статистики продаж</p>
+                            <p class="notification-time">21.03.2025</p>
+                        </div>
+                        <button class="profile-action-button secondary">Все уведомления</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Секция настроек -->
+            <div class="menu-item" data-section="settings">
+                <div class="menu-item-header">
+                    <div class="menu-item-icon">
+                        <i class="bi bi-gear"></i>
+                    </div>
+                    <span class="menu-item-title">Настройки</span>
+                    <i class="bi bi-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item-content">
+                    <div class="menu-content-inner">
+                        <div class="setting-item">
+                            <span>Темная тема</span>
+                            <label class="switch">
+                                <input type="checkbox" id="darkThemeToggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <span>Уведомления</span>
+                            <label class="switch">
+                                <input type="checkbox" id="notificationsToggle" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <span>Email-оповещения</span>
+                            <label class="switch">
+                                <input type="checkbox" id="emailNotificationsToggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Секция помощи -->
+            <div class="menu-item" data-section="help">
+                <div class="menu-item-header">
+                    <div class="menu-item-icon">
+                        <i class="bi bi-question-circle"></i>
+                    </div>
+                    <span class="menu-item-title">Помощь</span>
+                    <i class="bi bi-chevron-right menu-arrow"></i>
+                </div>
+                <div class="menu-item-content">
+                    <div class="menu-content-inner">
+                        <a href="#" class="help-link">Центр поддержки</a>
+                        <a href="#" class="help-link">Часто задаваемые вопросы</a>
+                        <a href="#" class="help-link">Связаться с нами</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Кнопка выхода -->
+        <div class="logout-container">
+            <a id="logoutLink" class="logout-button">
+                <i class="bi bi-box-arrow-right"></i>
+                Выйти из системы
+            </a>
+        </div>
+    </aside>
+</aside>

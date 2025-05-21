@@ -1,22 +1,19 @@
-// Products management module
-import authService from './authorization.js';
+import authService from './simple-auth-service.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize authentication
     try {
-        await authService.init({ debugMode: false });
+        await authService.init();
         if (!authService.isAuthenticated()) {
             console.log("User not authenticated, redirecting to login...");
-            authService.login();
+            window.location.href = '/';
             return;
         }
     } catch (error) {
         console.warn("Authentication error:", error);
-        // Continue with local authentication for development
-        if (!localStorage.getItem('isLoggedIn')) {
-            authService.login();
-            return;
-        }
+        // Redirect to login
+        window.location.href = '/';
+        return;
     }
 
     // Constants
@@ -102,18 +99,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         state.isLoading = true;
 
         try {
-            // Build query parameters
-            const queryParams = new URLSearchParams({
-                page: state.page,
-                page_size: state.limit
-            });
-
-            if (state.searchQuery) {
-                queryParams.append('q', state.searchQuery);
-            }
-
+            // Упрощенный запрос без параметров пагинации
             const response = await authService.fetchAuthenticated(
-                `${API_BASE_URL}/products?${queryParams.toString()}`
+                `${API_BASE_URL}/products`,
             );
 
             if (!response.ok) {
@@ -126,8 +114,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 throw new Error(data.message || 'Failed to load products');
             }
 
+            // Используем все полученные данные
             state.products = data.data || [];
-            state.totalCount = data.meta?.pagination?.total || 0;
+            state.totalCount = state.products.length;
 
             updateProductsTable();
             updatePagination();
@@ -138,21 +127,21 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             // Show empty table state
             tableBody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">
-                                <i class="bi bi-exclamation-circle"></i>
-                            </div>
-                            <h4>Не удалось загрузить товары</h4>
-                            <p>Произошла ошибка при загрузке данных. Пожалуйста, попробуйте обновить страницу.</p>
-                            <button class="btn btn-primary" onclick="location.reload()">
-                                <i class="bi bi-arrow-clockwise me-2"></i>Обновить
-                            </button>
+            <tr>
+                <td colspan="7" class="text-center">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-exclamation-circle"></i>
                         </div>
-                    </td>
-                </tr>
-            `;
+                        <h4>Не удалось загрузить товары</h4>
+                        <p>Произошла ошибка при загрузке данных. Пожалуйста, попробуйте обновить страницу.</p>
+                        <button class="btn btn-primary" onclick="location.reload()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Обновить
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
         } finally {
             state.isLoading = false;
         }
@@ -163,7 +152,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         try {
             const response = await authService.fetchAuthenticated(
-                `${API_BASE_URL}/products/${productId}`
+                `${API_BASE_URL}/products/${productId}`,
             );
 
             if (!response.ok) {
@@ -194,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 `${API_BASE_URL}/products`,
                 {
                     method: 'POST',
-                    body: JSON.stringify(productData)
+                    body: JSON.stringify(productData),
                 }
             );
 
@@ -261,7 +250,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const response = await authService.fetchAuthenticated(
                 `${API_BASE_URL}/products/${productId}`,
                 {
-                    method: 'DELETE'
+                    method: 'DELETE',
                 }
             );
 
@@ -289,6 +278,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // UI Update Functions
     function updateProductsTable() {
+        console.log("Данные продуктов:", state.products);
         if (state.products.length === 0) {
             tableBody.innerHTML = `
                 <tr>
@@ -311,7 +301,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         tableBody.innerHTML = '';
 
         state.products.forEach(product => {
+            console.log("Продукт:", product.id);
+            console.log("  base_data:", product.base_data, "тип:", typeof product.base_data);
             const baseData = parseJsonField(product.base_data);
+            console.log("  baseData после парсинга:", baseData);
             const row = document.createElement('tr');
 
             // Format dates
@@ -458,7 +451,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Create base data object
         const baseData = {
             name: productName.value.trim(),
-            price: parseFloat(productPrice.value),
+            price: parseFloat(productPrice.value.replace(/[^\d.-]/g, '')),
             description: productDescription.value.trim()
         };
 
@@ -602,13 +595,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         errorMessage.textContent = message;
     }
 
-    function parseJsonField(jsonString) {
-        if (!jsonString) return {};
+    function parseJsonField(jsonData) {
+        if (!jsonData) return {};
+
+        if (typeof jsonData === 'object' && !Array.isArray(jsonData)) {
+            return jsonData;
+        }
 
         try {
-            return JSON.parse(jsonString);
+            return JSON.parse(jsonData);
         } catch (e) {
-            console.error("Error parsing JSON:", e);
+            console.log("Не удалось распарсить JSON:", jsonData, e);
             return {};
         }
     }
